@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Reputation Checker - Cybersecurity Tools Hub</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --text-color: #2c3e50;
+            --bg-color: #fff;
+            --card-bg: #f8f9fa;
+            --border-color: #ddd;
+            --shadow-color: rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --text-color: #ecf0f1;
+            --bg-color: #1a1a1a;
+            --card-bg: #2c2c2c;
+            --border-color: #444;
+            --shadow-color: rgba(0,0,0,0.3);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .url-checker-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .input-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+            margin-bottom: 1rem;
+            resize: vertical;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .file-input {
+            padding: 1.5rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--bg-color);
+        }
+
+        .file-input:hover {
+            border-color: var(--primary-color);
+            background: var(--card-bg);
+        }
+
+        .results-section {
+            margin-top: 2rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: var(--bg-color);
+            box-shadow: 0 1px 3px var(--shadow-color);
+            border-radius: 5px;
+            overflow: hidden;
+            table-layout: fixed;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Column widths */
+        .results-table th:nth-child(1),
+        .results-table td:nth-child(1) {
+            width: 50%;
+            max-width: 0;
+        }
+
+        .results-table th:nth-child(2),
+        .results-table td:nth-child(2) {
+            width: 15%;
+        }
+
+        .results-table th:nth-child(3),
+        .results-table td:nth-child(3),
+        .results-table th:nth-child(4),
+        .results-table td:nth-child(4),
+        .results-table th:nth-child(5),
+        .results-table td:nth-child(5) {
+            width: 11%;
+            text-align: center;
+        }
+
+        /* URL tooltip on hover */
+        .url-cell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .url-cell:hover::after {
+            content: attr(data-url);
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: var(--card-bg);
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px var(--shadow-color);
+            z-index: 1000;
+            white-space: normal;
+            word-break: break-all;
+            max-width: 500px;
+            font-size: 0.9rem;
+        }
+
+        .results-table th {
+            background: var(--card-bg);
+            font-weight: 600;
+            color: var(--text-color);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .results-table tr:hover {
+            background: var(--card-bg);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+            color: var(--text-color);
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--card-bg);
+            border-radius: 5px;
+            text-decoration: none;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .back-button:hover {
+            background-color: var(--border-color);
+            transform: translateX(-5px);
+        }
+
+        .url-info {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .url-info h4 {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .url-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .url-info li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .url-info i {
+            color: var(--primary-color);
+        }
+
+        /* Status row highlighting */
+        .malicious-row {
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .suspicious-row {
+            background-color: rgba(241, 196, 15, 0.1);
+        }
+
+        .safe-row {
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        .results-table tr.malicious-row:hover,
+        .results-table tr.suspicious-row:hover,
+        .results-table tr.safe-row:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-malicious {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+
+        .status-suspicious {
+            background-color: rgba(241, 196, 15, 0.2);
+            color: #f39c12;
+        }
+
+        .status-safe {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+
+        .status-error {
+            background-color: rgba(149, 165, 166, 0.2);
+            color: #7f8c8d;
+        }
+
+        .status-unknown {
+            background-color: rgba(149, 165, 166, 0.2);
+            color: #7f8c8d;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .url-checker-container {
+                padding: 1rem;
+                margin: 1rem;
+            }
+
+            .results-table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .url-info ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌓</button>
+    
+    <div class="url-checker-container">
+        <a href="/" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Tools
+        </a>
+
+        <h1>URL Reputation Checker</h1>
+        <p class="subtitle">Check URLs against VirusTotal's database for security analysis</p>
+
+        <div class="url-info">
+            <h4>Features</h4>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Check multiple URLs simultaneously</li>
+                <li><i class="fas fa-check-circle"></i> Bulk URL scanning via Excel file</li>
+                <li><i class="fas fa-check-circle"></i> Detailed security analysis</li>
+                <li><i class="fas fa-check-circle"></i> Download results in Excel format</li>
+            </ul>
+        </div>
+
+        <div class="input-section">
+            <h3>Enter URLs</h3>
+            <form id="urlForm">
+                <textarea name="input_text" rows="5" placeholder="Enter URLs (one per line)&#10;Example:&#10;https://example.com&#10;https://test.com"></textarea>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Check URLs
+                </button>
+            </form>
+        </div>
+
+        <div class="input-section">
+            <h3>Upload Excel File</h3>
+            <form id="fileForm" class="file-upload">
+                <div class="file-input">
+                    <i class="fas fa-file-excel"></i>
+                    <p>Drop your Excel file here or click to browse</p>
+                    <p class="text-muted">File should have a column named "URL"</p>
+                    <input type="file" name="file" accept=".xlsx,.xls" style="display: none;">
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-upload"></i> Upload & Check
+                </button>
+            </form>
+        </div>
+
+        <div class="loading">
+            <i class="fas fa-spinner fa-2x"></i>
+            <p>Processing URLs...</p>
+        </div>
+
+        <div class="results-section" style="display: none;">
+            <h3>Results</h3>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Status</th>
+                        <th>Malicious</th>
+                        <th>Suspicious</th>
+                        <th>Harmless</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="button-group">
+                <button class="btn btn-warning" onclick="downloadResults()">
+                    <i class="fas fa-download"></i> Download Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlForm = document.getElementById('urlForm');
+            const fileForm = document.getElementById('fileForm');
+            const fileInput = document.querySelector('input[type="file"]');
+            const loading = document.querySelector('.loading');
+            const resultsSection = document.querySelector('.results-section');
+            const resultsTable = document.querySelector('.results-table tbody');
+            const themeToggle = document.getElementById('theme-toggle');
+
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', function() {
+                const html = document.documentElement;
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+
+            // Handle manual URL input
+            urlForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const input = this.querySelector('textarea').value;
+                if (!input.trim()) return;
+
+                loading.style.display = 'block';
+                resultsSection.style.display = 'none';
+
+                try {
+                    const response = await fetch('/process_urls', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            'input_text': input
+                        })
+                    });
+
+                    const data = await response.json();
+                    displayResults(data);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing URLs');
+                } finally {
+                    loading.style.display = 'none';
+                }
+            });
+
+            // Handle file upload
+            fileForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                loading.style.display = 'block';
+                resultsSection.style.display = 'none';
+
+                try {
+                    const response = await fetch('/upload_urls', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    displayResults(data);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing the file');
+                } finally {
+                    loading.style.display = 'none';
+                }
+            });
+
+            // Handle file input click
+            document.querySelector('.file-input').addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // Handle file drag and drop
+            document.querySelector('.file-input').addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#3498db';
+            });
+
+            document.querySelector('.file-input').addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ddd';
+            });
+
+            document.querySelector('.file-input').addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ddd';
+                fileInput.files = e.dataTransfer.files;
+            });
+
+            function displayResults(results) {
+                resultsTable.innerHTML = '';
+                results.forEach(result => {
+                    const row = document.createElement('tr');
+                    
+                    // Determine row class based on status
+                    let rowClass = '';
+                    if (result.status === 'Malicious') {
+                        rowClass = 'malicious-row';
+                    } else if (result.status === 'Suspicious') {
+                        rowClass = 'suspicious-row';
+                    } else if (result.status === 'Safe') {
+                        rowClass = 'safe-row';
+                    }
+                    
+                    row.className = rowClass;
+                    
+                    // Create status badge
+                    let statusBadge = '';
+                    if (result.status) {
+                        const statusClass = `status-${result.status.toLowerCase()}`;
+                        statusBadge = `<span class="status-badge ${statusClass}">${result.status}</span>`;
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="url-cell" data-url="${result.url}">${result.url}</td>
+                        <td>${statusBadge || 'Unknown'}</td>
+                        <td>${result.malicious || 0}</td>
+                        <td>${result.suspicious || 0}</td>
+                        <td>${result.harmless || 0}</td>
+                    `;
+                    resultsTable.appendChild(row);
+                });
+                resultsSection.style.display = 'block';
+            }
+        });
+
+        function downloadResults() {
+            window.location.href = '/download_urls';
+        }
+    </script>
+</body>
+</html> 

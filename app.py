@@ -6,6 +6,8 @@ import re
 import os
 import hashlib
 from werkzeug.utils import secure_filename
+import base64
+import time
 
 app = Flask(__name__)
 
@@ -129,6 +131,131 @@ def calculate_file_hash(file_path):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
 
+# Function to encode URL in base64 (as required by VirusTotal)
+def encode_url(url):
+    return base64.urlsafe_b64encode(url.encode()).decode().strip("=")
+
+# Function to check URL reputation
+def check_url(url):
+    api_key = get_available_api_key()
+    if not api_key:
+        return {"url": url, "status": "Error", "malicious": 0, "suspicious": 0, "harmless": 0, "details": "API Limit Exceeded"}
+
+    # Clean the URL if needed
+    url = url.strip()
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+
+    url_vt = "https://www.virustotal.com/api/v3/urls"
+    headers = {"accept": "application/json", "x-apikey": api_key}
+    data = {"url": url}
+
+    try:
+        # First, submit the URL for scanning
+        response = requests.post(url_vt, headers=headers, data=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            url_id = result["data"]["id"]
+            
+            # Wait a moment for the scan to complete
+            time.sleep(2)
+            
+            # Fetch detailed report using the URL ID
+            report_url = f"https://www.virustotal.com/api/v3/analyses/{url_id}"
+            report_response = requests.get(report_url, headers=headers)
+            
+            if report_response.status_code == 200:
+                data = report_response.json().get("data", {})
+                attributes = data.get("attributes", {})
+                stats = attributes.get("stats", {})
+                
+                api_usage[api_key] += 1
+                
+                # Extract more detailed information
+                malicious = stats.get("malicious", 0)
+                suspicious = stats.get("suspicious", 0)
+                harmless = stats.get("harmless", 0)
+                undetected = stats.get("undetected", 0)
+                
+                # Get the title or category if available
+                title = attributes.get("title", "Unknown")
+                if title == "Unknown":
+                    title = attributes.get("categories", ["Unknown"])[0] if attributes.get("categories") else "Unknown"
+                
+                # Determine reputation status
+                status = "Safe"
+                if malicious > 0:
+                    status = "Malicious"
+                elif suspicious > 0:
+                    status = "Suspicious"
+                elif harmless > 0:
+                    status = "Safe"
+                else:
+                    status = "Unknown"
+                
+                return {
+                    "url": url,
+                    "status": status,
+                    "malicious": malicious,
+                    "suspicious": suspicious,
+                    "harmless": harmless,
+                    "undetected": undetected,
+                    "details": title
+                }
+            else:
+                # Try to get more information from the error response
+                error_details = "Unknown error"
+                try:
+                    error_data = report_response.json()
+                    error_details = error_data.get("error", {}).get("message", "Unknown error")
+                except:
+                    error_details = f"HTTP {report_response.status_code}"
+                
+                return {
+                    "url": url, 
+                    "status": "Error", 
+                    "malicious": 0, 
+                    "suspicious": 0, 
+                    "harmless": 0, 
+                    "details": f"Failed to get report: {error_details}"
+                }
+        else:
+            # Try to get more information from the error response
+            error_details = "Unknown error"
+            try:
+                error_data = response.json()
+                error_details = error_data.get("error", {}).get("message", "Unknown error")
+            except:
+                error_details = f"HTTP {response.status_code}"
+            
+            return {
+                "url": url, 
+                "status": "Error", 
+                "malicious": 0, 
+                "suspicious": 0, 
+                "harmless": 0, 
+                "details": f"Failed to submit URL: {error_details}"
+            }
+    except Exception as e:
+        return {
+            "url": url, 
+            "status": "Error", 
+            "malicious": 0, 
+            "suspicious": 0, 
+            "harmless": 0, 
+            "details": f"Exception: {str(e)}"
+        }
+
+    return {
+        "url": url, 
+        "status": "Error", 
+        "malicious": 0, 
+        "suspicious": 0, 
+        "harmless": 0, 
+        "details": "Not Found"
+    }
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -152,6 +279,10 @@ def ip_checker():
 @app.route('/file-checker')
 def file_checker():
     return render_template('file-checker.html')
+
+@app.route('/url-checker')
+def url_checker():
+    return render_template('url-checker.html')
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -437,6 +568,115 @@ def download_file():
     except Exception as e:
         app.logger.error(f"Download error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/process_urls', methods=['POST'])
+def process_urls():
+    input_text = request.form.get('input_text', '').strip()
+    if not input_text:
+        return jsonify({'results': []})
+
+    urls = [url.strip() for url in input_text.split('\n') if url.strip()]
+    
+    results = []
+    for url in urls:
+        try:
+            result = check_url(url)
+            results.append(result)
+        except Exception as e:
+            results.append({
+                "url": url, 
+                "status": "Error", 
+                "malicious": 0, 
+                "suspicious": 0, 
+                "harmless": 0, 
+                "details": f"Processing error: {str(e)}"
+            })
+    
+    # Save results to Excel
+    try:
+        df = pd.DataFrame(results)
+        df.to_excel('url_scan_results.xlsx', index=False)
+    except Exception as e:
+        app.logger.error(f"Error saving results to Excel: {str(e)}")
+    
+    return jsonify(results)
+
+@app.route('/upload_urls', methods=['POST'])
+def upload_urls():
+    if 'file' not in request.files:
+        return jsonify({'results': []})
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'results': []})
+        
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        return jsonify({'results': []})
+    
+    try:
+        # Save the file temporarily
+        file_path = os.path.join(UPLOAD_FOLDER, secure_filename(file.filename))
+        file.save(file_path)
+        
+        # Read URLs from the Excel file
+        df = pd.read_excel(file_path)
+        
+        # Check if 'URL' column exists, otherwise try to find a column that might contain URLs
+        url_column = None
+        if 'URL' in df.columns:
+            url_column = 'URL'
+        else:
+            # Try to find a column that might contain URLs
+            for column in df.columns:
+                # Check if the column contains strings that look like URLs
+                sample_values = df[column].dropna().astype(str).head(5).tolist()
+                if any('http' in val or 'www.' in val for val in sample_values):
+                    url_column = column
+                    break
+        
+        if not url_column:
+            return jsonify({'results': [], 'error': 'No URL column found in the file'})
+        
+        # Extract URLs from the identified column
+        urls = df[url_column].dropna().astype(str).tolist()
+        
+        # Process each URL
+        results = []
+        for url in urls:
+            try:
+                result = check_url(url.strip())
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "url": url, 
+                    "status": "Error", 
+                    "malicious": 0, 
+                    "suspicious": 0, 
+                    "harmless": 0, 
+                    "details": f"Processing error: {str(e)}"
+                })
+        
+        # Save results to Excel
+        try:
+            df = pd.DataFrame(results)
+            df.to_excel('url_scan_results.xlsx', index=False)
+        except Exception as e:
+            app.logger.error(f"Error saving results to Excel: {str(e)}")
+        
+        # Clean up the temporary file
+        try:
+            os.remove(file_path)
+        except:
+            pass
+        
+        return jsonify(results)
+    except Exception as e:
+        app.logger.error(f"Error processing file: {str(e)}")
+        return jsonify({'results': [], 'error': str(e)})
+
+@app.route('/download_urls')
+def download_urls():
+    return send_file('url_scan_results.xlsx', as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
