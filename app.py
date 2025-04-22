@@ -151,7 +151,7 @@ def ip_checker():
 
 @app.route('/file-checker')
 def file_checker():
-    return render_template('File Reputation Checker/templates/index.html')
+    return render_template('file-checker.html')
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
@@ -380,50 +380,63 @@ def download():
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
-    if 'files' not in request.files:
-        return jsonify({"error": "No files provided"})
-    
-    files = request.files.getlist('files')
-    if not files:
-        return jsonify({"error": "No files selected"})
-    
-    results = []
-    for file in files:
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"})
+            
+        file = request.files['file']
         if file.filename == '':
-            continue
-        
-        # Save the uploaded file
-        file_path = os.path.join(UPLOAD_FOLDER, secure_filename(file.filename))
+            return jsonify({"error": "No file selected"})
+            
+        # Save the file temporarily
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
         
-        try:
-            # Calculate hash and check reputation
-            hash_value = calculate_file_hash(file_path)
-            result = check_hash(hash_value)
-            result['filename'] = file.filename
-            result['hash'] = hash_value
-            results.append(result)
-        except Exception as e:
-            results.append({
-                "filename": file.filename,
-                "error": str(e)
-            })
-        finally:
-            # Clean up the uploaded file
-            try:
-                os.remove(file_path)
-            except:
-                pass
-    
-    # Save results to Excel
-    df = pd.DataFrame(results)
-    df.to_excel('file_scan_results.xlsx', index=False)
-    
-    return jsonify(results)
+        # Calculate file hash
+        file_hash = calculate_file_hash(file_path)
+        
+        # Check file hash against VirusTotal
+        result = check_hash(file_hash)
+        
+        # Add filename and hash to result
+        if isinstance(result, dict) and 'error' not in result:
+            result['filename'] = filename
+            result['hash'] = file_hash
+            
+            # Save results to Excel for download
+            df = pd.DataFrame([{
+                'filename': filename,
+                'hash': file_hash,
+                'malicious': result.get('malicious', 0),
+                'suspicious': result.get('suspicious', 0),
+                'harmless': result.get('harmless', 0),
+                'undetected': result.get('undetected', 0)
+            }])
+            df.to_excel('file_scan_results.xlsx', index=False)
+        
+        # Clean up the temporary file
+        os.remove(file_path)
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 @app.route('/download_file')
 def download_file():
-    return send_file('file_scan_results.xlsx', as_attachment=True)
+    try:
+        if not os.path.exists('file_scan_results.xlsx'):
+            return jsonify({"error": "No results available to download"}), 404
+            
+        return send_file(
+            'file_scan_results.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='file_scan_results.xlsx'
+        )
+    except Exception as e:
+        app.logger.error(f"Download error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
