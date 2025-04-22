@@ -1,0 +1,703 @@
+/* Global Styles */
+:root {
+    --primary-color: #0A74DA; /* Standard Blue - Keep for professional light theme */
+    --secondary-color: #043A6B;
+    --accent-color: #00F0E0; /* Vibrant Cyan Accent */
+    --dark-color: #1A1A2E;
+    --light-color: #F8F9FA;
+    --danger-color: #FF4B4B;
+    --success-color: #00B894;
+    --warning-color: #FFA502;
+    --text-color: #333333;
+    --bg-color: #F8F9FA;
+    --card-bg: #FFFFFF;
+    --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --footer-bg: #f5f5f5;
+    --footer-text: #666;
+    --border-color: #e0e0e0;
+    --primary-color-rgb: 10, 116, 218;
+    --dark-color-rgb: 26, 26, 46;
+    --success-color-rgb: 0, 184, 148; /* RGB for #00B894 */
+    --danger-color-rgb: 255, 75, 75;   /* RGB for #FF4B4B */
+    --warning-color-rgb: 255, 165, 2;  /* RGB for #FFA502 */
+    --info-color-rgb: 23, 162, 184;   /* Approx RGB for a typical info blue */
+
+    /* Hero specific */
+    --hero-bg-color: #f0f2f5; /* Light grey for light mode */
+    --hero-grid-color: rgba(51, 51, 51, 0.06); /* Faint dark grid for light mode */
+    --hero-gradient-start: var(--primary-color);
+    --hero-gradient-end: var(--secondary-color);
+}
+
+[data-theme="dark"] {
+    --primary-color: #0D6EFD; /* Electric Blue */
+    --secondary-color: #03285A; /* Deeper Blue */
+    --accent-color: #00FFFF; /* Neon Cyan */
+    --dark-color: #0A0A1E; /* Very Dark Blue/Black */
+    --light-color: #121212;
+    --danger-color: #FF6B6B;
+    --success-color: #00D8A4;
+    --warning-color: #FFB532;
+    --text-color: #E0E0E0;
+    --bg-color: #0D1117; /* Dark Background */
+    --card-bg: #161B22; /* Slightly lighter dark for cards */
+    --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    --navbar-bg: rgba(13, 17, 23, 0.9); /* Dark Navbar */
+    --footer-bg: #161B22;
+    --footer-text: #AAAAAA;
+    --border-color: #30363d;
+    --primary-color-rgb: 13, 110, 253; /* Updated RGB for Electric Blue */
+    --dark-color-rgb: 10, 10, 30;
+    --success-color-rgb: 0, 216, 164; /* RGB for #00D8A4 */
+    --danger-color-rgb: 255, 107, 107; /* RGB for #FF6B6B */
+    --warning-color-rgb: 255, 181, 50; /* RGB for #FFB532 */
+    --info-color-rgb: 23, 162, 184;  /* Can keep same or adjust for dark */
+
+    /* Hero specific */
+    --hero-bg-color: var(--dark-color); /* Use dark color base */
+    --hero-grid-color: rgba(255, 255, 255, 0.03); /* Faint light grid for dark mode */
+    --hero-gradient-start: var(--primary-color);
+    --hero-gradient-end: var(--dark-color);
+
+    /* Make hero text pure white in dark mode for better contrast */
+    .hero-content h1,
+    .hero-content p {
+        color: #FFFFFF !important; /* Use !important to ensure override */
+    }
+
+    /* Dark mode specific glows */
+    .logo:hover i,
+    .tool-card:hover i,
+    .social-links a:hover i {
+        filter: drop-shadow(0 0 8px var(--accent-color));
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    font-size: 1.2rem;
+    box-shadow: var(--card-shadow);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Navbar Styles */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background: var(--navbar-bg);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+    padding: 0.5rem 5%;
+    background: var(--navbar-bg);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    transition: transform 0.3s ease;
+}
+
+.logo i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+    transition: transform 0.3s ease, filter 0.3s ease; /* Add filter transition */
+}
+
+.logo:hover {
+    transform: scale(1.03);
+}
+
+.logo:hover i {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px var(--primary-color)); /* Default glow */
+}
+
+.logo:hover span {
+    /* Optional: Slightly adjust text color or add effect */
+}
+
+.logo span {
+    transition: transform 0.3s ease;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+
+.nav-links li {
+    margin: 0 1rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    /* background-color: var(--hero-bg-color); */ /* Replaced by animated gradient */
+    background: linear-gradient(-45deg, var(--hero-gradient-start), var(--hero-gradient-end), var(--secondary-color), var(--primary-color));
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    /* Keep grid overlay */
+    /* background-image: \
+        linear-gradient(var(--hero-grid-color) 1px, transparent 1px),\r
+        linear-gradient(90deg, var(--hero-grid-color) 1px, transparent 1px);\r
+    background-size: 30px 30px; */
+    overflow: hidden;
+    transition: background-color 0.3s ease; /* Keep for potential fallbacks */
+}
+
+/* Optional: Add the grid back on top if desired */
+/* Removing the grid overlay for a cleaner look */
+/*
+.hero::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(var(--hero-grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--hero-grid-color) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none; /* Ensure it doesn't interfere with content */
+    z-index: 0;
+}
+*/
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Adjusted gradient for potentially better blending */
+    background: radial-gradient(ellipse at center, rgba(var(--primary-color-rgb, 10, 116, 218), 0.1) 0%, rgba(var(--dark-color-rgb, 26, 26, 46), 0) 70%); /* Reduced first alpha */
+    opacity: 0.4; /* Reduced opacity */
+    z-index: 0; /* Ensure it's behind content */
+}
+
+.hero-content {
+    max-width: 800px;
+    padding: 0 2rem;
+    z-index: 1; /* Ensure content is above pseudo-elements */
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: fadeInUp 1s ease;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    animation: fadeInUp 1s ease 0.2s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--accent-color); /* Use accent color */
+    color: var(--dark-color); /* Ensure contrast */
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    animation: fadeInUp 1s ease 0.4s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.cta-button:hover {
+    transform: translateY(-5px) scale(1.05); /* Add slight scale */
+    box-shadow: 0 10px 20px rgba(var(--accent-color-rgb, 0, 255, 255), 0.3); /* Glow effect with accent color */
+}
+
+/* Tools Section */
+.tools-section {
+    padding: 5rem 5%;
+    background-color: var(--bg-color);
+}
+
+.tools-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--text-color);
+    position: relative;
+}
+
+.tools-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: var(--accent-color); /* Use accent color */
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.tool-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border-top: 3px solid transparent;
+}
+
+.tool-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+.tool-card:hover::before {
+    transform: scaleX(1);
+}
+
+.tool-card i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease, filter 0.3s ease; /* Add filter transition */
+}
+
+.tool-card:hover i {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px var(--primary-color)); /* Default glow */
+}
+
+.tool-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.tool-card p {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+}
+
+.tool-link {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tool-link:hover {
+    background: var(--secondary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tool-card:hover {
+    transform: translateY(-10px);
+    /* box-shadow is handled by animation now */
+    /* box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15); */
+    border-top-color: var(--accent-color); /* Use accent color for top border */
+    animation: pulseBorder 1.5s infinite alternate;
+}
+
+/* About Section */
+.about-section {
+    padding: 5rem 5%;
+    background-color: var(--bg-color);
+}
+
+.about-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem; /* Increased margin to accommodate underline */
+    color: var(--text-color);
+    position: relative; /* Ensure positioning context for ::after */
+}
+
+/* Add accent underline to About h2 as well */
+.about-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px; /* Adjusted position */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: var(--accent-color);
+}
+
+.about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about-text {
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+}
+
+.about-text p {
+    margin-bottom: 2rem;
+    line-height: 1.8;
+    color: var(--text-color);
+}
+
+.skills {
+    margin-top: 2rem;
+}
+
+.skills h3 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.skills ul {
+    list-style: none;
+}
+
+.skills li {
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.skills li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.contact-info {
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+}
+
+.contact-info h3 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+}
+
+.contact-info p {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+}
+
+.contact-info i {
+    margin-right: 1rem;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Footer */
+footer {
+    background: var(--footer-bg);
+    padding: 3rem 5% 1rem;
+    color: var(--footer-text);
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h4 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: var(--footer-text);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: var(--accent-color); /* Use accent color on hover */
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--card-bg);
+    border-radius: 50%;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.3s ease; /* Ensure all transitions */
+}
+
+.social-links a i {
+    transition: filter 0.3s ease; /* Add transition for icon glow */
+}
+
+.social-links a:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* Apply default glow on hover (override in dark theme) */
+.social-links a:hover i {
+     filter: drop-shadow(0 0 8px var(--primary-color));
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulseBorder {
+    0% {
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15), 0 0 0 0px rgba(var(--accent-color-rgb, 0, 255, 255), 0.4);
+    }
+    100% {
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25), 0 0 0 10px rgba(var(--accent-color-rgb, 0, 255, 255), 0);
+    }
+}
+
+@keyframes subtlePulse {
+    0% {
+        opacity: 0.05;
+    }
+    50% {
+        opacity: 0.1;
+    }
+    100% {
+        opacity: 0.05;
+    }
+}
+
+/* Mobile Navigation */
+.burger {
+    display: none;
+    cursor: pointer;
+}
+
+.burger div {
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-color);
+    margin: 5px;
+    transition: all 0.3s ease;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .nav-links {
+        position: absolute;
+        right: 0;
+        top: 70px;
+        background: var(--navbar-bg);
+        height: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        transition: height 0.3s ease;
+    }
+
+    .nav-links.active {
+        height: 200px;
+    }
+
+    .nav-links li {
+        margin: 1rem 0;
+    }
+
+    .burger {
+        display: block;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .about-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Scroll Progress Bar */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--primary-color);
+    z-index: 1001;
+}
+
+/* Style for background icon */
+.hero-bg-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 25rem; /* Large size */
+    color: var(--primary-color);
+    opacity: 0.05; /* Very subtle */
+    z-index: 0; /* Behind content */
+    pointer-events: none; /* Prevent interaction */
+    animation: subtlePulse 5s infinite linear; /* Add subtle pulse */
+}

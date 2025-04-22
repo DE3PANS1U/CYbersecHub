@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Security Scanner</title>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add required libraries for report generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --background-color: #1a1a2e;
+            --card-background-color: #2a2a3e;
+            --text-color: #e0e0e0;
+            --text-muted-color: #a0a0b0;
+            --border-color: #40405a;
+            --primary-color-rgb: 0, 123, 255;
+        }
+
+        :root[data-theme="light"] {
+            --background-color: #f0f2f5;
+            --card-background-color: #ffffff;
+            --text-color: #2c3e50;
+            --text-muted-color: #666666;
+            --border-color: #e0e0e0;
+            --primary-color-rgb: 0, 123, 255;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .theme-toggle span {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: var(--text-muted-color);
+            font-size: 1.1rem;
+        }
+
+        /* Upload Area Styles */
+        .file-upload-container {
+            background: var(--card-background-color);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .upload-area.dragover {
+            background: rgba(0, 123, 255, 0.1);
+            border-color: var(--primary-color);
+            transform: scale(1.02);
+        }
+
+        .upload-icon i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .upload-area h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .upload-button {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .upload-button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .upload-info {
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        /* Selected Files Section Styling */
+        .selected-files {
+            margin-top: 2rem;
+            background: var(--card-background-color);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .file-item {
+            animation: slideIn 0.3s ease;
+            padding: 1.2rem;
+            margin: 0.8rem 0;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateX(5px);
+            background: rgba(var(--primary-color-rgb), 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex: 1;
+        }
+
+        .file-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .file-icon i {
+            font-size: 1.4rem;
+            color: white;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-type {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.8rem;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .file-name .file-extension {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .file-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+        }
+
+        .file-size {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .file-type {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.8rem;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .remove-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            transform: scale(1.05);
+        }
+
+        .remove-btn i {
+            font-size: 1.1rem;
+        }
+
+        .no-files {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted-color);
+            font-size: 1.1rem;
+        }
+
+        .file-progress {
+            height: 4px;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 2px;
+            margin-top: 0.8rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Results Section Styles */
+        .results-container {
+            margin-top: 3rem;
+            background: var(--card-background-color);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .results-header h2 {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .results-header h2 i {
+            color: var(--primary-color);
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 25px;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: var(--text-muted-color);
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: var(--card-background-color);
+            border-radius: 15px;
+            padding: 1.8rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+
+        .result-card[data-status="malicious"]::before {
+            background: linear-gradient(90deg, var(--danger-color), #c0392b);
+        }
+
+        .result-card[data-status="suspicious"]::before {
+            background: linear-gradient(90deg, var(--warning-color), #d35400);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(52, 152, 219, 0.15);
+        }
+
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.4rem;
+            font-size: 1.1rem;
+        }
+
+        .file-type {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .status-badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge[data-status="clean"] {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .status-badge[data-status="malicious"] {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .status-badge[data-status="suspicious"] {
+            background: linear-gradient(135deg, #f39c12, #d35400);
+            color: white;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+            margin: 1.8rem 0;
+            padding: 1.5rem;
+            background: var(--card-background-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: var(--card-background-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0.3rem;
+        }
+
+        .stat-item:nth-child(1) .stat-value {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item:nth-child(2) .stat-value {
+            background: linear-gradient(135deg, #f39c12, #d35400);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item:nth-child(3) .stat-value {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .detection-details {
+            margin-top: 1.8rem;
+            background: var(--card-background-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .detection-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detection-title {
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.1rem;
+        }
+
+        .detection-list {
+            background: var(--card-background-color);
+            border-radius: 8px;
+            padding: 1.2rem;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+        }
+
+        .detection-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .detection-item:hover {
+            background: rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .detection-item:last-child {
+            border-bottom: none;
+        }
+
+        .detection-item i {
+            color: #e74c3c;
+            font-size: 1.1rem;
+        }
+
+        .scan-info {
+            margin-top: 1.8rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(52, 152, 219, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .scan-time {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 0.8rem 1.4rem;
+            border-radius: 25px;
+            border: 1px solid rgba(52, 152, 219, 0.1);
+        }
+
+        .scan-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 1px solid rgba(52, 152, 219, 0.1);
+            color: #3498db;
+            cursor: pointer;
+            padding: 0.8rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .filter-options {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Download Report Styles */
+        .download-options {
+            position: relative;
+            display: inline-block;
+        }
+
+        .global-actions {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .global-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .global-action-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .global-action-btn.secondary {
+            background: var(--card-background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .global-action-btn.secondary:hover {
+            background: rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .format-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-background-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem;
+            display: none;
+            z-index: 1000;
+            min-width: 200px;
+            margin-top: 0.5rem;
+        }
+
+        .format-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .format-option {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .format-option:hover {
+            background: rgba(var(--primary-color-rgb), 0.1);
+            transform: translateX(5px);
+        }
+
+        .format-option i {
+            font-size: 1.2rem;
+            width: 24px;
+            color: var(--primary-color);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Download progress overlay */
+        .download-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .progress-container {
+            background: var(--card-background-color);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-title {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-status {
+            color: var(--text-muted-color);
+            font-size: 0.9rem;
+        }
+
+        /* Add new analysis methods */
+        .risk-score-section {
+            margin: 1rem 0;
+        }
+
+        .risk-meter {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .risk-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #ffc107 50%, #dc3545 100%);
+            transition: width 0.3s ease;
+        }
+
+        .risk-factors {
+            margin: 1rem 0;
+        }
+
+        .risk-factor {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: var(--card-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .characteristic {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .characteristic-value.high {
+            color: #dc3545;
+        }
+
+        .characteristic-value.medium {
+            color: #ffc107;
+        }
+
+        .characteristic-value.low {
+            color: #28a745;
+        }
+
+        .confidence-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #40405a;
+        }
+
+        /* Security Engines Analysis */
+        .engines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .engine-status {
+            background: #2a2a3e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border: 1px solid #40405a;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .engine-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            opacity: 0.8;
+        }
+
+        .engine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #40405a;
+        }
+
+        .engine-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .engine-name i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .engine-type {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            color: #a0a0b0;
+            font-weight: 500;
+            border: 1px solid #40405a;
+        }
+
+        .engine-result {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0.8rem 0;
+        }
+
+        .engine-result.detected {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff4d4d;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .engine-result.clean {
+            background: rgba(40, 167, 69, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .engine-result.suspicious {
+            background: rgba(243, 156, 18, 0.1);
+            color: #ffc107;
+            border: 1px solid rgba(243, 156, 18, 0.2);
+        }
+
+        .engine-result i {
+            font-size: 1rem;
+        }
+
+        .engine-details {
+            font-size: 0.9rem;
+            color: #a0a0b0;
+            line-height: 1.5;
+            padding: 0.8rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 8px;
+            border: 1px solid #40405a;
+        }
+
+        .engine-details i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Additional status indicators */
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.detected {
+            background: var(--danger-color);
+            box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
+        }
+
+        .status-indicator.clean {
+            background: var(--success-color);
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+        }
+
+        .status-indicator.suspicious {
+            background: var(--warning-color);
+            box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+        }
+
+        /* Engine type badges */
+        .engine-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            color: #e0e0e0;
+            border: 1px solid #40405a;
+        }
+
+        .engine-badge i {
+            margin-right: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+
+        /* Cloud reputation indicator */
+        .cloud-reputation {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 6px;
+            border: 1px solid #40405a;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .cloud-reputation i {
+            color: var(--info-color);
+        }
+
+        /* Signature detection info */
+        .signature-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 6px;
+            border: 1px solid #40405a;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .signature-info i {
+            color: var(--warning-color);
+        }
+
+        /* Real-time protection status */
+        .protection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 6px;
+            border: 1px solid #40405a;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .protection-status i {
+            color: var(--success-color);
+        }
+
+        /* Custom rule matching info */
+        .rule-matching {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border-radius: 6px;
+            border: 1px solid #40405a;
+            color: #a0a0b0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .rule-matching i {
+            color: var(--primary-color);
+        }
+
+        /* Threat Analysis and IoC sections */
+        .analysis-section {
+            background: #2a2a3e;
+            border-radius: 12px;
+            padding: 1.8rem;
+            margin: 1.5rem 0;
+            border: 1px solid #40405a;
+            color: #e0e0e0;
+        }
+
+        .analysis-section h4 {
+            font-size: 1.2rem;
+            color: #e0e0e0;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #40405a;
+        }
+
+        .mitre-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .mitre-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border: 1px solid #40405a;
+            border-radius: 20px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .timeline {
+            margin-top: 1rem;
+        }
+
+        .timeline-item {
+            color: #e0e0e0;
+            padding: 0.8rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border: 1px solid #40405a;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-item strong {
+            color: #e0e0e0;
+            margin-right: 0.5rem;
+        }
+
+        /* IoC List Styles */
+        .ioc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ioc-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #2a2a3e;
+            border: 1px solid #40405a;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        .ioc-type {
+            background: rgba(var(--primary-color-rgb), 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+
+        .ioc-value {
+            flex: 1;
+            font-family: monospace;
+            color: #e0e0e0;
+        }
+
+        .hash-section {
+            background: #2a2a3e;
+            border: 1px solid #40405a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .hash-label {
+            color: #a0a0b0;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .hash-value {
+            font-family: monospace;
+            color: #e0e0e0;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #40405a;
+            word-break: break-all;
+        }
+
+        .detection-item {
+            background: #2a2a3e;
+            border: 1px solid #40405a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #e0e0e0;
+        }
+
+        .detection-item i {
+            color: #dc3545;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-badge.malicious {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff4d4d;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .status-badge.clean {
+            background: rgba(40, 167, 69, 0.1);
+            color: #2ecc71;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        /* Copy button */
+        .copy-btn {
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border: 1px solid #40405a;
+            color: #e0e0e0;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(var(--primary-color-rgb), 0.2);
+        }
+
+        /* Threat level indicator */
+        .threat-level {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: #2a2a3e;
+            border: 1px solid #40405a;
+            color: #e0e0e0;
+        }
+
+        .threat-level.medium {
+            border-left: 4px solid #ffc107;
+        }
+
+        .threat-level.high {
+            border-left: 4px solid #dc3545;
+        }
+
+        .threat-level.low {
+            border-left: 4px solid #28a745;
+        }
+
+        /* Risk assessment meter */
+        .risk-meter {
+            height: 8px;
+            background: rgba(var(--primary-color-rgb), 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+            border: 1px solid #40405a;
+        }
+
+        .risk-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--success-color) 0%, 
+                var(--warning-color) 50%, 
+                var(--danger-color) 100%
+            );
+            transition: width 0.3s ease;
+        }
+
+        /* Analysis breakdown */
+        .analysis-breakdown {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #2a2a3e;
+            border: 1px solid #40405a;
+            border-radius: 8px;
+        }
+
+        .risk-factors {
+            margin-top: 1rem;
+        }
+
+        .risk-factor {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            background: rgba(var(--primary-color-rgb), 0.05);
+            border: 1px solid #40405a;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        .risk-factor i {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+        <span>Dark Mode</span>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <h1>File Reputation Checker</h1>
+            <p>Upload files to check their security status and reputation</p>
+        </div>
+
+        <div class="file-upload-container">
+            <div class="upload-area" id="dropZone">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Drag & Drop Files Here</h3>
+                <p>or</p>
+                <label class="upload-button">
+                    <span>Browse Files</span>
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                </label>
+                <p class="upload-info">Maximum file size: 50MB</p>
+            </div>
+            
+            <div class="selected-files" id="fileList">
+                <!-- Files will be listed here -->
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">
+                <h2>Scan Results</h2>
+                <div class="filter-options">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="malicious">Malicious</button>
+                    <button class="filter-btn" data-filter="clean">Clean</button>
+                </div>
+            </div>
+
+            <div class="global-actions">
+                <div class="download-options">
+                    <button class="global-action-btn" onclick="toggleFormatDropdown('complete')">
+                        <i class="fas fa-file-download"></i>
+                        Download Complete Report
+                        <i class="fas fa-chevron-down" style="margin-left: 5px;"></i>
+                    </button>
+                    <div class="format-dropdown" id="complete-format-dropdown">
+                        <div class="format-option" onclick="downloadCompleteReport('excel')">
+                            <i class="fas fa-file-excel"></i>
+                            Excel (.xlsx)
+                        </div>
+                        <div class="format-option" onclick="downloadCompleteReport('pdf')">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF (.pdf)
+                        </div>
+                        <div class="format-option" onclick="downloadCompleteReport('json')">
+                            <i class="fas fa-file-code"></i>
+                            JSON (.json)
+                        </div>
+                    </div>
+                </div>
+                <button class="global-action-btn secondary" onclick="clearAllResults()">
+                    <i class="fas fa-trash"></i>
+                    Clear Results
+                </button>
+            </div>
+
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        let allScanResults = [];  // Global variable to store scan results
+
+        async function downloadCompleteReport(format) {
+            if (!allScanResults || allScanResults.length === 0) {
+                alert('No scan results available to generate report.');
+                return;
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `scan_report_${timestamp}`;
+            
+            try {
+                document.getElementById('downloadProgress').style.display = 'block';
+                document.getElementById('downloadStatus').textContent = `Generating ${format.toUpperCase()} report...`;
+
+                switch (format.toLowerCase()) {
+                    case 'excel':
+                        await generateExcelReport(allScanResults, `${filename}.xlsx`);
+                        break;
+                    case 'pdf':
+                        await generatePDFReport(allScanResults, `${filename}.pdf`);
+                        break;
+                    case 'json':
+                        await generateJSONReport(allScanResults, `${filename}.json`);
+                        break;
+                    default:
+                        throw new Error('Unsupported format');
+                }
+
+                document.getElementById('downloadStatus').textContent = 'Report generated successfully!';
+                setTimeout(() => {
+                    document.getElementById('downloadProgress').style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                console.error('Error generating report:', error);
+                document.getElementById('downloadStatus').textContent = 'Error generating report. Please try again.';
+                setTimeout(() => {
+                    document.getElementById('downloadProgress').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const fileList = document.getElementById('fileList');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const resultsGrid = document.getElementById('resultsGrid');
+
+            // Drag and Drop functionality
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('dragover');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('dragover');
+            }
+
+            // Handle file drops
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            // Handle file selection
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+
+            function handleFiles(files) {
+                [...files].forEach(file => {
+                    const fileItem = createFileItem(file);
+                    fileList.appendChild(fileItem);
+                });
+                
+                if (files.length > 0) {
+                    fileList.style.display = 'block';
+                    uploadFiles(files);
+                }
+            }
+
+            function createFileItem(file) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                const fileType = file.name.split('.').pop().toUpperCase();
+                
+                item.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="file-details">
+                            <div class="file-name">
+                                ${file.name}
+                                <span class="file-type">${fileType}</span>
+                            </div>
+                            <div class="file-meta">
+                                <span class="file-size">
+                                    <i class="fas fa-hard-drive"></i>
+                                    ${fileSize} MB
+                                </span>
+                                <span class="file-date">
+                                    <i class="fas fa-clock"></i>
+                                    ${new Date().toLocaleString()}
+                                </span>
+                            </div>
+                            <div class="file-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(this)" title="Remove file">
+                        <i class="fas fa-trash"></i>
+                        Remove
+                    </button>
+                `;
+                
+                return item;
+            }
+
+            // Add this function to handle file removal
+            function removeFile(button) {
+                const fileItem = button.closest('.file-item');
+                fileItem.style.opacity = '0';
+                fileItem.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    fileItem.remove();
+                    // Check if there are no more files
+                    const fileList = document.getElementById('fileList');
+                    if (fileList.children.length === 0) {
+                        fileList.style.display = 'none';
+                    }
+                }, 300);
+            }
+
+            function uploadFiles(files) {
+                const formData = new FormData();
+                [...files].forEach(file => {
+                    formData.append('files', file);
+                });
+
+                loadingOverlay.style.display = 'flex';
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                    loadingOverlay.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingOverlay.style.display = 'none';
+                    alert('An error occurred while uploading files');
+                });
+            }
+
+            function displayResults(results) {
+                // Store results globally
+                allScanResults = allScanResults.concat(results);
+                
+                // Clear the grid if it's the first batch
+                if (resultsGrid.children.length === 0) {
+                    resultsGrid.innerHTML = '';
+                }
+
+                results.forEach(result => {
+                    const card = createResultCard(result);
+                    resultsGrid.appendChild(card);
+                });
+            }
+
+            function createResultCard(result) {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                
+                let status = 'clean';
+                if (result.malicious > 0) status = 'malicious';
+                else if (result.suspicious > 0) status = 'suspicious';
+
+                const statusIcon = status === 'clean' ? 'fa-check-circle' : 
+                                 status === 'malicious' ? 'fa-exclamation-circle' : 
+                                 'fa-exclamation-triangle';
+
+                const scanTime = new Date().toLocaleString();
+                
+                card.innerHTML = `
+                    <div class="threat-level ${getThreatLevel(result)}">
+                        Threat Level: ${calculateThreatLevel(result).level}
+                        <div class="threat-details">
+                            ${generateThreatJustification(result)}
+                        </div>
+                    </div>
+                    
+                    <div class="result-header">
+                        <div class="file-icon">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">${result.details || 'Unknown file'}</div>
+                            <div class="file-type">${result.file_type || 'Unknown type'}</div>
+                        </div>
+                        <span class="status-badge" data-status="${status}">
+                            <i class="fas ${statusIcon}"></i>
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>Threat Analysis</h4>
+                        <div class="mitre-tags">
+                            ${generateMitreTags(result)}
+                        </div>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <strong>First Seen:</strong> ${new Date().toLocaleString()}
+                            </div>
+                            <div class="timeline-item">
+                                <strong>Last Analysis:</strong> ${new Date().toLocaleString()}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h4>Indicators of Compromise</h4>
+                        <ul class="ioc-list">
+                            ${generateIoCList(result)}
+                        </ul>
+                    </div>
+
+                    <div class="analysis-section">
+                        <h4>Security Engines Analysis</h4>
+                        <div class="engines-grid">
+                            ${generateEngineResults(result)}
+                        </div>
+                    </div>
+
+                    <div class="result-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">
+                                <i class="fas fa-virus"></i>
+                                Malicious
+                            </span>
+                            <span class="stat-value">${result.malicious}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Suspicious
+                            </span>
+                            <span class="stat-value">${result.suspicious}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">
+                                <i class="fas fa-shield-alt"></i>
+                                Harmless
+                            </span>
+                            <span class="stat-value">${result.harmless}</span>
+                        </div>
+                    </div>
+
+                    <div class="hash-info">
+                        <div class="hash-header">
+                            <span class="hash-title">
+                                <i class="fas fa-fingerprint"></i>
+                                SHA-256 Hash
+                            </span>
+                        </div>
+                        <div class="hash-value">
+                            <span>${result.hash}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${result.hash}')" title="Copy hash">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detection-details">
+                        <div class="detection-header">
+                            <span class="detection-title">
+                                <i class="fas fa-search"></i>
+                                Detection Details
+                            </span>
+                            <span class="detection-count">${result.detections.split(',').length} detections</span>
+                        </div>
+                        <div class="detection-list">
+                            ${result.detections.split(',').map(detection => `
+                                <div class="detection-item">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    ${detection.trim()}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="scan-info">
+                        <div class="scan-time">
+                            <i class="far fa-clock"></i>
+                            Scanned ${scanTime}
+                        </div>
+                        <div class="scan-actions">
+                            <div class="download-options">
+                                <button class="action-btn" onclick="toggleFormatDropdown('${result.hash}')" title="Download Report">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <div class="format-dropdown" id="${result.hash}-format-dropdown">
+                                    <div class="format-option" onclick="downloadReport('${result.hash}', 'excel')">
+                                        <i class="fas fa-file-excel"></i>
+                                        Excel
+                                    </div>
+                                    <div class="format-option" onclick="downloadReport('${result.hash}', 'pdf')">
+                                        <i class="fas fa-file-pdf"></i>
+                                        PDF
+                                    </div>
+                                    <div class="format-option" onclick="downloadReport('${result.hash}', 'json')">
+                                        <i class="fas fa-file-code"></i>
+                                        JSON
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="action-btn" onclick="shareResults(${JSON.stringify(result)})" title="Share Results">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="action-btn" onclick="viewFullReport(${JSON.stringify(result)})" title="View Full Report">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                return card;
+            }
+
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const filter = btn.dataset.filter;
+                    filterResults(filter);
+                });
+            });
+
+            function filterResults(filter) {
+                const cards = document.querySelectorAll('.result-card');
+                cards.forEach(card => {
+                    const status = card.querySelector('.status-badge').dataset.status;
+                    if (filter === 'all' || status === filter) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            // Utility function to copy hash to clipboard
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Hash copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            }
+
+            // Close format dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.download-options')) {
+                    document.querySelectorAll('.format-dropdown').forEach(dropdown => {
+                        dropdown.classList.remove('show');
+                    });
+                }
+            });
+
+            // Toggle format dropdown
+            window.toggleFormatDropdown = function(type) {
+                const dropdown = document.getElementById(`${type}-format-dropdown`);
+                dropdown.classList.toggle('show');
+            };
+
+            // Function to download individual report
+            window.downloadReport = function(resultHash, format) {
+                try {
+                    const result = allScanResults.find(r => r.hash === resultHash);
+                    if (!result) {
+                        throw new Error('Result not found');
+                    }
+
+                    const reportData = {
+                        fileName: result.details || 'Unknown file',
+                        fileType: result.file_type || 'Unknown type',
+                        hash: result.hash,
+                        status: result.malicious > 0 ? 'Malicious' : 
+                                result.suspicious > 0 ? 'Suspicious' : 'Clean',
+                        stats: {
+                            malicious: result.malicious,
+                            suspicious: result.suspicious,
+                            harmless: result.harmless
+                        },
+                        detections: result.detections.split(',').map(d => d.trim()),
+                        scanTime: new Date().toLocaleString()
+                    };
+
+                    switch (format) {
+                        case 'excel':
+                            downloadExcel([reportData], `scan_report_${result.hash.substring(0, 8)}`);
+                            break;
+                        case 'pdf':
+                            downloadPDF([reportData], `scan_report_${result.hash.substring(0, 8)}`);
+                            break;
+                        case 'json':
+                            downloadJSON(reportData, `scan_report_${result.hash.substring(0, 8)}.json`);
+                            break;
+                    }
+                } catch (error) {
+                    console.error('Error downloading report:', error);
+                    alert('Error downloading report. Please try again.');
+                }
+            };
+
+            // Enhanced PDF report generation with better error handling
+            function downloadPDF(data, filename) {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    if (!jsPDF) {
+                        throw new Error('PDF library not loaded');
+                    }
+
+                    // Create new document with landscape orientation for better layout
+                    const doc = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    // Set default font
+                    doc.setFont('helvetica');
+
+                    // Add header
+                    doc.setFontSize(20);
+                    doc.setTextColor(0, 51, 102);
+                    doc.text('Security Analysis Report', 15, 20);
+
+                    // Add report metadata
+                    doc.setFontSize(10);
+                    doc.setTextColor(102, 102, 102);
+                    doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 30);
+                    doc.text(`Total Files Analyzed: ${data.length}`, 15, 35);
+
+                    // Add summary section
+                    const maliciousCount = data.filter(item => calculateThreatLevel(item).level === 'CRITICAL' || 
+                                                              calculateThreatLevel(item).level === 'HIGH').length;
+                    const suspiciousCount = data.filter(item => calculateThreatLevel(item).level === 'MEDIUM').length;
+                    const cleanCount = data.filter(item => calculateThreatLevel(item).level === 'LOW' || 
+                                                         calculateThreatLevel(item).level === 'CLEAN').length;
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Summary:', 15, 45);
+                    doc.setFontSize(10);
+                    doc.text(`Critical/High Risk: ${maliciousCount}`, 25, 52);
+                    doc.text(`Medium Risk: ${suspiciousCount}`, 25, 58);
+                    doc.text(`Low Risk/Clean: ${cleanCount}`, 25, 64);
+
+                    let yPos = 80;
+                    const pageHeight = doc.internal.pageSize.height;
+                    const pageWidth = doc.internal.pageSize.width;
+
+                    // Process each file
+                    data.forEach((item, index) => {
+                        // Check if we need a new page
+                        if (yPos > pageHeight - 60) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+
+                        const assessment = calculateThreatLevel(item);
+                        
+                        // Add file section header with colored background
+                        doc.setFillColor(245, 245, 245);
+                        doc.rect(15, yPos - 5, pageWidth - 30, 25, 'F');
+                        
+                        // File name and basic info
+                        doc.setFontSize(12);
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(`File ${index + 1}: ${item.details || 'Unknown file'}`, 20, yPos + 5);
+                        
+                        // Add threat level with color coding
+                        doc.setFontSize(10);
+                        switch(assessment.level) {
+                            case 'CRITICAL':
+                                doc.setTextColor(220, 53, 69); // Red
+                                break;
+                            case 'HIGH':
+                                doc.setTextColor(253, 126, 20); // Orange
+                                break;
+                            case 'MEDIUM':
+                                doc.setTextColor(255, 193, 7); // Yellow
+                                break;
+                            default:
+                                doc.setTextColor(40, 167, 69); // Green
+                        }
+                        doc.text(`Risk Level: ${assessment.level}`, pageWidth - 60, yPos + 5);
+                        
+                        // Reset text color
+                        doc.setTextColor(0, 0, 0);
+                        yPos += 25;
+
+                        // Add detailed information
+                        doc.setFontSize(10);
+                        doc.text(`File Type: ${item.file_type || 'Unknown'}`, 25, yPos);
+                        yPos += 6;
+                        doc.text(`Hash: ${item.hash}`, 25, yPos);
+                        yPos += 6;
+
+                        // Add detection statistics
+                        doc.text(`Detection Statistics:`, 25, yPos);
+                        yPos += 6;
+                        doc.text(`• Malicious: ${item.malicious}`, 35, yPos);
+                        yPos += 6;
+                        doc.text(`• Suspicious: ${item.suspicious}`, 35, yPos);
+                        yPos += 6;
+                        doc.text(`• Clean: ${item.harmless}`, 35, yPos);
+                        yPos += 6;
+
+                        // Add risk factors
+                        if (assessment.riskFactors && assessment.riskFactors.length > 0) {
+                            doc.text('Risk Factors:', 25, yPos);
+                            yPos += 6;
+                            assessment.riskFactors.forEach(factor => {
+                                if (yPos > pageHeight - 20) {
+                                    doc.addPage();
+                                    yPos = 20;
+                                }
+                                doc.text(`• ${factor}`, 35, yPos);
+                                yPos += 6;
+                            });
+                        }
+
+                        yPos += 10;
+                    });
+
+                    // Add footer with page numbers
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(128, 128, 128);
+                        doc.text(`Page ${i} of ${pageCount}`, pageWidth - 30, pageHeight - 10);
+                    }
+
+                    // Save the PDF
+                    doc.save(`${filename}.pdf`);
+                    return true;
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert(`Error generating PDF report: ${error.message}. Please ensure you have a stable internet connection and try again.`);
+                    return false;
+                }
+            }
+
+            // Update the download complete report function to handle errors better
+            window.downloadCompleteReport = async function(format) {
+                try {
+                    if (allScanResults.length === 0) {
+                        alert('No scan results available. Please scan files first.');
+                        return;
+                    }
+
+                    // Show download progress
+                    const progressOverlay = document.createElement('div');
+                    progressOverlay.className = 'download-progress';
+                    progressOverlay.innerHTML = `
+                        <div class="progress-container">
+                            <div class="progress-title">Preparing Download</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div class="progress-status">Processing results...</div>
+                        </div>
+                    `;
+                    document.body.appendChild(progressOverlay);
+                    progressOverlay.style.display = 'flex';
+
+                    const progressFill = progressOverlay.querySelector('.progress-fill');
+                    const progressStatus = progressOverlay.querySelector('.progress-status');
+
+                    // Update progress animation
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        if (progress < 90) {
+                            progress += 10;
+                            progressFill.style.width = `${progress}%`;
+                        }
+                    }, 200);
+
+                    const filename = `security_scan_report_${new Date().toISOString().split('T')[0]}`;
+                    
+                    try {
+                        switch (format) {
+                            case 'excel':
+                                progressStatus.textContent = 'Generating Excel report...';
+                                await generateExcelReport(allScanResults, filename);
+                                break;
+                            case 'pdf':
+                                progressStatus.textContent = 'Generating PDF report...';
+                                await generatePDFReport(allScanResults, filename);
+                                break;
+                            case 'json':
+                                progressStatus.textContent = 'Generating JSON report...';
+                                await generateJSONReport(allScanResults, filename);
+                                break;
+                        }
+
+                        // Complete the progress bar
+                        progressFill.style.width = '100%';
+                        progressStatus.textContent = 'Download complete!';
+                        progressStatus.style.color = 'var(--success-color)';
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(progressOverlay);
+                        }, 1000);
+                    } catch (error) {
+                        console.error('Error generating report:', error);
+                        progressStatus.textContent = 'Error generating report. Please try again.';
+                        progressStatus.style.color = 'var(--danger-color)';
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(progressOverlay);
+                        }, 2000);
+                    }
+
+                    clearInterval(progressInterval);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while preparing the download. Please try again.');
+                }
+            };
+
+            // Excel report generation function
+            async function generateExcelReport(data, filename) {
+                try {
+                    // Ensure filename has .xlsx extension
+                    if (!filename.endsWith('.xlsx')) {
+                        filename += '.xlsx';
+                    }
+
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Format the data for Excel
+                    const formattedData = data.map(result => ({
+                        'File Name': result.fileName || 'Unknown',
+                        'File Type': result.fileType || 'Unknown',
+                        'Hash': result.hash || 'N/A',
+                        'Status': result.malicious > 0 ? 'Malicious' : 
+                                result.suspicious > 0 ? 'Suspicious' : 'Clean',
+                        'Malicious Detections': result.malicious || 0,
+                        'Suspicious Detections': result.suspicious || 0,
+                        'Clean Detections': result.harmless || 0,
+                        'Total Detections': (result.malicious + result.suspicious + result.harmless) || 0,
+                        'Scan Time': result.scanTime || new Date().toLocaleString(),
+                        'Threat Level': calculateThreatLevel(result).level,
+                        'Risk Score': calculateThreatLevel(result).riskScore.toFixed(1),
+                        'Confidence': calculateThreatLevel(result).confidence.toFixed(1) + '%'
+                    }));
+
+                    // Create worksheet
+                    const ws = XLSX.utils.json_to_sheet(formattedData);
+
+                    // Set column widths
+                    const colWidths = [
+                        { wch: 30 }, // File Name
+                        { wch: 15 }, // File Type
+                        { wch: 65 }, // Hash
+                        { wch: 15 }, // Status
+                        { wch: 20 }, // Malicious Detections
+                        { wch: 20 }, // Suspicious Detections
+                        { wch: 20 }, // Clean Detections
+                        { wch: 20 }, // Total Detections
+                        { wch: 25 }, // Scan Time
+                        { wch: 15 }, // Threat Level
+                        { wch: 15 }, // Risk Score
+                        { wch: 15 }  // Confidence
+                    ];
+                    ws['!cols'] = colWidths;
+
+                    // Add worksheet to workbook
+                    XLSX.utils.book_append_sheet(wb, ws, 'Scan Results');
+
+                    // Write file
+                    XLSX.writeFile(wb, filename);
+                } catch (error) {
+                    console.error('Error generating Excel report:', error);
+                    alert('Error generating Excel report. Please try again.');
+                }
+            }
+
+            // PDF report generation function
+            async function generatePDFReport(data, filename) {
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.width;
+                
+                // Add title
+                doc.setFontSize(16);
+                doc.text('File Security Scan Report', pageWidth/2, 20, { align: 'center' });
+                
+                // Add timestamp
+                doc.setFontSize(10);
+                doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth/2, 30, { align: 'center' });
+                
+                // Add content
+                doc.setFontSize(12);
+                let yPos = 50;
+                
+                data.forEach((result, index) => {
+                    // Check if we need a new page
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`File ${index + 1}: ${result.fileName}`, 10, yPos);
+                    doc.setFont(undefined, 'normal');
+                    
+                    yPos += 10;
+                    doc.text(`Size: ${result.fileSize}`, 15, yPos);
+                    yPos += 7;
+                    doc.text(`Type: ${result.fileType}`, 15, yPos);
+                    yPos += 7;
+                    doc.text(`Status: ${result.scanStatus}`, 15, yPos);
+                    yPos += 7;
+                    doc.text(`Scan Date: ${result.scanDate}`, 15, yPos);
+                    yPos += 7;
+                    doc.text(`Threat Level: ${result.threatLevel || 'N/A'}`, 15, yPos);
+                    yPos += 7;
+                    doc.text(`Malware Type: ${result.malwareType || 'N/A'}`, 15, yPos);
+                    yPos += 7;
+                    
+                    if (result.additionalInfo) {
+                        const info = `Additional Info: ${result.additionalInfo}`;
+                        const lines = doc.splitTextToSize(info, pageWidth - 30);
+                        doc.text(lines, 15, yPos);
+                        yPos += 7 * lines.length;
+                    }
+                    
+                    yPos += 10; // Add space between entries
+                });
+                
+                doc.save(filename);
+            }
+
+            // JSON report generation function
+            async function generateJSONReport(data, filename) {
+                const jsonContent = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonContent], { type: 'application/json' });
+                saveAs(blob, filename);
+            }
+
+            // Helper function to download JSON data
+            function downloadJSON(data, filename) {
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Function to clear all results
+            window.clearAllResults = function() {
+                if (confirm('Are you sure you want to clear all scan results?')) {
+                    allScanResults = [];
+                    resultsGrid.innerHTML = '';
+                    fileList.innerHTML = '';
+                    fileList.style.display = 'none';
+                }
+            };
+
+            // Function to share results
+            window.shareResults = function(result) {
+                try {
+                    const shareData = {
+                        title: 'File Scan Results',
+                        text: `File scan results for ${result.details || 'Unknown file'}\nStatus: ${result.malicious > 0 ? 'Malicious' : result.suspicious > 0 ? 'Suspicious' : 'Clean'}\nHash: ${result.hash}`,
+                        url: window.location.href
+                    };
+
+                    if (navigator.share) {
+                        navigator.share(shareData)
+                            .then(() => console.log('Shared successfully'))
+                            .catch((error) => {
+                                console.error('Error sharing:', error);
+                                fallbackShare(shareData);
+                            });
+                    } else {
+                        fallbackShare(shareData);
+                    }
+                } catch (error) {
+                    console.error('Error sharing results:', error);
+                    alert('Error sharing results. Please try again.');
+                }
+            };
+
+            // Fallback sharing method
+            function fallbackShare(shareData) {
+                // Create a temporary input to copy the text
+                const textarea = document.createElement('textarea');
+                textarea.value = shareData.text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                alert('Scan results copied to clipboard!\n\nYou can now paste and share it.');
+            }
+
+            // Function to view full report
+            window.viewFullReport = function(result) {
+                try {
+                    const modal = document.createElement('div');
+                    modal.className = 'report-modal';
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2>Full Scan Report</h2>
+                                <button class="close-btn" onclick="this.closest('.report-modal').remove()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="report-section">
+                                    <h3>File Information</h3>
+                                    <p><strong>Name:</strong> ${result.details || 'Unknown file'}</p>
+                                    <p><strong>Type:</strong> ${result.file_type || 'Unknown type'}</p>
+                                    <p><strong>Hash (SHA-256):</strong> ${result.hash}</p>
+                                </div>
+                                <div class="report-section">
+                                    <h3>Scan Results</h3>
+                                    <p><strong>Status:</strong> <span class="status-${result.malicious > 0 ? 'malicious' : result.suspicious > 0 ? 'suspicious' : 'clean'}">${result.malicious > 0 ? 'Malicious' : result.suspicious > 0 ? 'Suspicious' : 'Clean'}</span></p>
+                                    <div class="result-stats">
+                                        <div>Malicious: ${result.malicious}</div>
+                                        <div>Suspicious: ${result.suspicious}</div>
+                                        <div>Harmless: ${result.harmless}</div>
+                                    </div>
+                                </div>
+                                <div class="report-section">
+                                    <h3>Detection Details</h3>
+                                    <div class="detection-list">
+                                        ${result.detections.split(',').map(detection => `
+                                            <div class="detection-item">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                ${detection.trim()}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add modal styles
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .report-modal {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0,0,0,0.5);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            z-index: 1000;
+                        }
+
+                        .modal-content {
+                            background: #2a2a3e;
+                            border-radius: 12px;
+                            width: 90%;
+                            max-width: 800px;
+                            max-height: 90vh;
+                            overflow-y: auto;
+                            padding: 2rem;
+                            border: 1px solid #40405a;
+                            color: #e0e0e0;
+                        }
+
+                        .modal-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 1.5rem;
+                            padding-bottom: 1rem;
+                            border-bottom: 1px solid #40405a;
+                        }
+
+                        .close-btn {
+                            background: none;
+                            border: none;
+                            font-size: 1.5rem;
+                            cursor: pointer;
+                            color: #a0a0b0;
+                            padding: 0.5rem;
+                            border-radius: 50%;
+                            transition: all 0.3s ease;
+                        }
+
+                        .close-btn:hover {
+                            background: #40405a;
+                            color: #e0e0e0;
+                        }
+
+                        .report-section {
+                            margin-bottom: 2rem;
+                        }
+
+                        .report-section h3 {
+                            margin-bottom: 1rem;
+                            color: #e0e0e0;
+                        }
+
+                        .status-malicious { color: #de350b; }
+                        .status-suspicious { color: #ff8b00; }
+                        .status-clean { color: #00875a; }
+                    `;
+
+                    document.head.appendChild(style);
+                    document.body.appendChild(modal);
+
+                    // Close modal when clicking outside
+                    const closeModal = () => {
+                        document.body.removeChild(modal);
+                        document.head.removeChild(style);
+                    };
+
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            closeModal();
+                        }
+                    });
+
+                    // Add close button functionality
+                    const closeBtn = modal.querySelector('.close-btn');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', closeModal);
+                    }
+                } catch (error) {
+                    console.error('Error viewing full report:', error);
+                    alert('Error viewing full report. Please try again.');
+                }
+            };
+
+            // Enhanced threat assessment with multiple calculation methods
+            function calculateThreatLevel(result) {
+                const totalEngines = result.malicious + result.suspicious + result.harmless || 0;
+                
+                if (totalEngines === 0) {
+                    return {
+                        level: 'PENDING ANALYSIS',
+                        details: 'File queued for analysis',
+                        confidence: 0
+                    };
+                }
+
+                // Use alternative risk assessment when engine data is limited
+                const riskAssessment = calculateAlternativeRisk(result);
+                const characteristics = analyzeFileCharacteristics(result);
+
+                let assessment = {
+                    level: 'CLEAN',
+                    details: '',
+                    confidence: riskAssessment.confidence.score,
+                    riskScore: riskAssessment.score,
+                    riskFactors: riskAssessment.factors,
+                    characteristics: characteristics
+                };
+
+                // More conservative threat level determination for limited detections
+                if (totalEngines < 3) {
+                    if (riskAssessment.score >= 60) {
+                        assessment.level = 'HIGH';
+                        assessment.details = 'Significant risk indicators present';
+                    } else if (riskAssessment.score >= 40) {
+                        assessment.level = 'MEDIUM';
+                        assessment.details = 'Moderate risk indicators found';
+                    } else if (riskAssessment.score >= 20) {
+                        assessment.level = 'LOW';
+                        assessment.details = 'Minor risk indicators present';
+                    } else {
+                        assessment.level = 'CLEAN';
+                        assessment.details = 'No significant risk indicators';
+                    }
+                } else {
+                    // Standard threat level determination
+                    if (riskAssessment.score >= 75) {
+                        assessment.level = 'CRITICAL';
+                        assessment.details = 'High risk indicators detected';
+                    } else if (riskAssessment.score >= 50) {
+                        assessment.level = 'HIGH';
+                        assessment.details = 'Significant risk indicators present';
+                    } else if (riskAssessment.score >= 25) {
+                        assessment.level = 'MEDIUM';
+                        assessment.details = 'Moderate risk indicators found';
+                    } else if (riskAssessment.score > 0) {
+                        assessment.level = 'LOW';
+                        assessment.details = 'Minor risk indicators present';
+                    }
+                }
+
+                return assessment;
+            }
+
+            function getThreatLevel(result) {
+                const assessment = calculateThreatLevel(result);
+                return assessment.level.toLowerCase().replace(' ', '-');
+            }
+
+            function generateThreatJustification(result) {
+                const assessment = calculateThreatLevel(result);
+                const totalEngines = result.malicious + result.suspicious + result.harmless || 0;
+
+                let justification = `
+                    <div class="analysis-results">
+                        <div class="risk-score-section">
+                            <h4>Risk Assessment Score: ${assessment.riskScore.toFixed(1)}/100</h4>
+                            <div class="risk-meter">
+                                <div class="risk-fill" style="width: ${assessment.riskScore}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-breakdown">
+                            <h4>Analysis Breakdown:</h4>
+                            <div class="risk-factors">
+                                ${assessment.riskFactors.map(factor => `
+                                    <div class="risk-factor">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        ${factor}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="file-characteristics">
+                            <h4>File Characteristics:</h4>
+                            ${assessment.characteristics.riskFactors.map(factor => `
+                                <div class="characteristic">
+                                    <span class="characteristic-label">${factor.factor}:</span>
+                                    <span class="characteristic-value ${factor.risk.toLowerCase()}">${factor.details}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="confidence-section">
+                            <h4>Assessment Confidence: ${assessment.confidence.toFixed(1)}%</h4>
+                            <div class="confidence-details">
+                                ${assessment.confidence > 60 ? 'High confidence assessment' : 
+                                  assessment.confidence > 30 ? 'Moderate confidence assessment' : 
+                                  'Limited confidence assessment'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                return justification;
+            }
+
+            function generateMitreTags(result) {
+                const tags = [];
+                if (result.malicious > 0) {
+                    tags.push('T1204 - User Execution');
+                    tags.push('T1566 - Phishing');
+                }
+                if (result.suspicious > 0) {
+                    tags.push('T1027 - Obfuscated Files');
+                }
+                return tags.map(tag => `
+                    <span class="mitre-tag">
+                        <i class="fas fa-shield-alt"></i>
+                        ${tag}
+                    </span>
+                `).join('');
+            }
+
+            function generateIoCList(result) {
+                const iocs = [];
+                iocs.push({
+                    type: 'HASH',
+                    value: result.hash
+                });
+                
+                if (result.detections) {
+                    result.detections.split(',').forEach(detection => {
+                        iocs.push({
+                            type: 'DETECTION',
+                            value: detection.trim()
+                        });
+                    });
+                }
+
+                return iocs.map(ioc => `
+                    <li class="ioc-item">
+                        <span class="ioc-type">${ioc.type}</span>
+                        <span class="ioc-value">${ioc.value}</span>
+                        <button class="action-btn" onclick="copyToClipboard('${ioc.value}')" title="Copy IoC">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </li>
+                `).join('');
+            }
+
+            // Function to generate security engine results
+            function generateEngineResults(result) {
+                const engines = [
+                    {
+                        name: 'ClamAV',
+                        type: 'Open Source',
+                        status: result.malicious > 0 ? 'detected' : 'clean',
+                        details: 'Signature-based detection',
+                        icon: 'fa-shield-alt'
+                    },
+                    {
+                        name: 'Yara Rules',
+                        type: 'Pattern Matching',
+                        status: result.suspicious > 0 ? 'suspicious' : 'clean',
+                        details: 'Custom rule matching',
+                        icon: 'fa-search'
+                    },
+                    {
+                        name: 'Windows Defender',
+                        type: 'Microsoft Security',
+                        status: 'clean',
+                        details: 'Real-time protection',
+                        icon: 'fa-windows'
+                    },
+                    {
+                        name: 'Kaspersky',
+                        type: 'Commercial',
+                        status: result.malicious > 0 ? 'detected' : 'clean',
+                        details: 'Cloud reputation',
+                        icon: 'fa-cloud-shield'
+                    }
+                ];
+
+                return `
+                    <div class="analysis-section">
+                        <h4>
+                            <i class="fas fa-shield-virus"></i>
+                            Security Engines Analysis
+                        </h4>
+                        <div class="engines-grid">
+                            ${engines.map(engine => `
+                                <div class="engine-status">
+                                    <div class="engine-header">
+                                        <span class="engine-name">
+                                            <i class="fas ${engine.icon}"></i>
+                                            ${engine.name}
+                                        </span>
+                                        <span class="engine-type">${engine.type}</span>
+                                    </div>
+                                    <div class="engine-result ${engine.status}">
+                                        <i class="fas ${engine.status === 'detected' ? 'fa-exclamation-circle' : 
+                                                      engine.status === 'suspicious' ? 'fa-exclamation-triangle' : 
+                                                      'fa-check-circle'}"></i>
+                                        ${engine.status}
+                                    </div>
+                                    <div class="engine-details">
+                                        <i class="fas fa-info-circle"></i>
+                                        ${engine.details}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add new analysis methods
+            function analyzeFileCharacteristics(result) {
+                const characteristics = {
+                    fileType: result.file_type || 'unknown',
+                    isExecutable: /\.(exe|dll|bat|cmd|ps1|vbs|js|msi)$/i.test(result.details || ''),
+                    hasValidSignature: false, // This should be populated from backend
+                    entropy: 0, // This should be populated from backend
+                    size: 0, // This should be populated from backend
+                    riskFactors: []
+                };
+
+                // Analyze file type risk
+                const highRiskTypes = ['exe', 'dll', 'bat', 'cmd', 'ps1', 'vbs', 'js', 'msi'];
+                const mediumRiskTypes = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar'];
+                const fileExt = (result.details || '').split('.').pop().toLowerCase();
+
+                if (highRiskTypes.includes(fileExt)) {
+                    characteristics.riskFactors.push({
+                        factor: 'High-risk file type',
+                        risk: 'HIGH',
+                        details: 'Executable or script file type'
+                    });
+                } else if (mediumRiskTypes.includes(fileExt)) {
+                    characteristics.riskFactors.push({
+                        factor: 'Medium-risk file type',
+                        risk: 'MEDIUM',
+                        details: 'Document or archive file type'
+                    });
+                }
+
+                return characteristics;
+            }
+
+            function calculateAlternativeRisk(result) {
+                const fileCharacteristics = analyzeFileCharacteristics(result);
+                const totalEngines = result.malicious + result.suspicious + result.harmless || 0;
+                
+                // Enhanced risk score calculation
+                let riskScore = 0;
+                let riskFactors = [];
+
+                // Factor 1: File Type Risk (0-35 points)
+                const fileTypeScore = calculateFileTypeRisk(result, fileCharacteristics);
+                riskScore += fileTypeScore.score;
+                riskFactors.push(...fileTypeScore.factors);
+
+                // Factor 2: Detection History (0-35 points)
+                const detectionScore = calculateDetectionRisk(result, totalEngines);
+                riskScore += detectionScore.score;
+                riskFactors.push(...detectionScore.factors);
+
+                // Factor 3: Contextual Analysis (0-20 points)
+                const contextScore = analyzeContext(result);
+                riskScore += contextScore.score;
+                riskFactors.push(...contextScore.factors);
+
+                // Factor 4: Behavioral Analysis (0-10 points)
+                const behaviorScore = analyzeBehavior(result);
+                riskScore += behaviorScore.score;
+                riskFactors.push(...behaviorScore.factors);
+
+                return {
+                    score: Math.min(riskScore, 100),
+                    factors: riskFactors,
+                    confidence: calculateConfidenceScore(result, fileCharacteristics, totalEngines)
+                };
+            }
+
+            function calculateFileTypeRisk(result, characteristics) {
+                let score = 0;
+                const factors = [];
+                const fileExt = (result.details || '').split('.').pop().toLowerCase();
+                const totalEngines = result.malicious + result.suspicious + result.harmless || 0;
+
+                // High-risk executable types
+                const criticalRiskTypes = ['exe', 'dll', 'sys'];
+                const highRiskTypes = ['bat', 'cmd', 'ps1', 'vbs', 'js', 'msi'];
+                const mediumRiskTypes = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar'];
+                
+                // Adjust scoring based on number of detections
+                if (totalEngines < 3) {
+                    // More conservative scoring for limited detections
+                    if (criticalRiskTypes.includes(fileExt)) {
+                        score += 20; // Reduced from 35
+                        factors.push('Critical risk file type: System executable (+20)');
+                    } else if (highRiskTypes.includes(fileExt)) {
+                        score += 15; // Reduced from 25
+                        factors.push('High risk file type: Script/Executable (+15)');
+                    } else if (mediumRiskTypes.includes(fileExt)) {
+                        score += 10; // Reduced from 15
+                        factors.push('Medium risk file type: Document/Archive (+10)');
+                    }
+                } else {
+                    // Standard scoring for sufficient detections
+                    if (criticalRiskTypes.includes(fileExt)) {
+                        score += 35;
+                        factors.push('Critical risk file type: System executable (+35)');
+                    } else if (highRiskTypes.includes(fileExt)) {
+                        score += 25;
+                        factors.push('High risk file type: Script/Executable (+25)');
+                    } else if (mediumRiskTypes.includes(fileExt)) {
+                        score += 15;
+                        factors.push('Medium risk file type: Document/Archive (+15)');
+                    }
+                }
+
+                // Additional file characteristics
+                if (characteristics.isExecutable && !characteristics.hasValidSignature) {
+                    score += 5; // Reduced from 10
+                    factors.push('Unsigned executable (+5)');
+                }
+
+                return { score, factors };
+            }
+
+            function calculateDetectionRisk(result, totalEngines) {
+                let score = 0;
+                const factors = [];
+
+                if (totalEngines > 0) {
+                    const maliciousRatio = result.malicious / totalEngines;
+                    const suspiciousRatio = result.suspicious / totalEngines;
+
+                    // More conservative scoring for limited detections
+                    if (totalEngines < 3) {
+                        // Reduced weight for limited detections
+                        const weightedMalicious = maliciousRatio * 20; // Reduced from 35
+                        const weightedSuspicious = suspiciousRatio * 10; // Reduced from 15
+
+                        score += weightedMalicious + weightedSuspicious;
+
+                        if (result.malicious > 0) {
+                            factors.push(`Limited malicious detections: ${result.malicious}/${totalEngines} (+${weightedMalicious.toFixed(1)})`);
+                        }
+                        if (result.suspicious > 0) {
+                            factors.push(`Limited suspicious detections: ${result.suspicious}/${totalEngines} (+${weightedSuspicious.toFixed(1)})`);
+                        }
+                    } else {
+                        // Standard scoring for sufficient detections
+                        const weightedMalicious = maliciousRatio * 35;
+                        const weightedSuspicious = suspiciousRatio * 15;
+
+                        score += weightedMalicious + weightedSuspicious;
+
+                        if (result.malicious > 0) {
+                            factors.push(`Malicious detections: ${result.malicious}/${totalEngines} (+${weightedMalicious.toFixed(1)})`);
+                        }
+                        if (result.suspicious > 0) {
+                            factors.push(`Suspicious detections: ${result.suspicious}/${totalEngines} (+${weightedSuspicious.toFixed(1)})`);
+                        }
+                    }
+                }
+
+                return { score, factors };
+            }
+
+            function analyzeContext(result) {
+                let score = 0;
+                const factors = [];
+                const filename = result.details || '';
+
+                // Enhanced pattern detection
+                const patterns = [
+                    { pattern: /invoice|payment|bank|account/i, risk: 8, desc: 'Financial-related naming' },
+                    { pattern: /urgent|important|critical/i, risk: 5, desc: 'Urgency indicators' },
+                    { pattern: /crack|keygen|patch|hack/i, risk: 10, desc: 'Suspicious keywords' },
+                    { pattern: /^[a-zA-Z0-9]{32,}$/i, risk: 8, desc: 'Random/encoded filename' },
+                    { pattern: /temp|tmp/i, risk: 3, desc: 'Temporary file pattern' },
+                    { pattern: /update|patch/i, risk: 4, desc: 'Update impersonation' },
+                    { pattern: /admin|system|service/i, risk: 5, desc: 'System impersonation' }
+                ];
+
+                patterns.forEach(({ pattern, risk, desc }) => {
+                    if (pattern.test(filename)) {
+                        score += risk;
+                        factors.push(`${desc} (+${risk})`);
+                    }
+                });
+
+                return {
+                    score: Math.min(score, 20),
+                    factors: factors
+                };
+            }
+
+            function analyzeBehavior(result) {
+                let score = 0;
+                const factors = [];
+
+                // Example behavioral indicators (should be populated from backend)
+                const behaviors = {
+                    requiresElevation: false,
+                    containsEncryptedContent: false,
+                    hasNetworkActivity: false,
+                    modifiesSystemFiles: false
+                };
+
+                if (behaviors.requiresElevation) {
+                    score += 3;
+                    factors.push('Requires elevation (+3)');
+                }
+                if (behaviors.containsEncryptedContent) {
+                    score += 3;
+                    factors.push('Contains encrypted content (+3)');
+                }
+                if (behaviors.hasNetworkActivity) {
+                    score += 2;
+                    factors.push('Network activity detected (+2)');
+                }
+                if (behaviors.modifiesSystemFiles) {
+                    score += 2;
+                    factors.push('System file modifications (+2)');
+                }
+
+                return {
+                    score: Math.min(score, 10),
+                    factors: factors
+                };
+            }
+
+            function calculateConfidenceScore(result, characteristics, totalEngines) {
+                let confidence = 0;
+                const factors = [];
+
+                // Factor 1: Engine Coverage (0-40%)
+                const engineWeight = 40;
+                const minEnginesForFullConfidence = 3;
+                const engineConfidence = Math.min((totalEngines / minEnginesForFullConfidence) * engineWeight, engineWeight);
+                confidence += engineConfidence;
+                factors.push(`Engine coverage: ${engineConfidence.toFixed(1)}%`);
+
+                // Factor 2: File Analysis Confidence (0-35%)
+                let fileAnalysisConfidence = 35;
+                if (characteristics.fileType === 'unknown') {
+                    fileAnalysisConfidence *= 0.5;
+                }
+                if (!characteristics.hasValidSignature && characteristics.isExecutable) {
+                    fileAnalysisConfidence *= 0.8;
+                }
+                confidence += fileAnalysisConfidence;
+                factors.push(`File analysis: ${fileAnalysisConfidence.toFixed(1)}%`);
+
+                // Factor 3: Detection Consistency (0-25%)
+                let consistencyConfidence = 25;
+                if (totalEngines > 0) {
+                    const detectionAgreement = Math.abs(result.malicious - result.suspicious) / totalEngines;
+                    consistencyConfidence *= (1 - detectionAgreement);
+                } else {
+                    consistencyConfidence = 0;
+                }
+                confidence += consistencyConfidence;
+                factors.push(`Detection consistency: ${consistencyConfidence.toFixed(1)}%`);
+
+                return {
+                    score: confidence,
+                    factors: factors
+                };
+            }
+        });
+
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (currentTheme === 'light') {
+                html.removeAttribute('data-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Dark Mode</span>';
+            } else {
+                html.setAttribute('data-theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+            }
+        }
+
+        // Check for saved theme preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeToggle = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
+            }
+
+            // Add click event listener to save theme preference
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                localStorage.setItem('theme', currentTheme === 'light' ? 'dark' : 'light');
+            });
+        });
+
+        // Helper function to get appropriate file icon
+        function getFileIcon(extension) {
+            const iconMap = {
+                'exe': 'fa-cog',
+                'dll': 'fa-puzzle-piece',
+                'sys': 'fa-microchip',
+                'pdf': 'fa-file-pdf',
+                'doc': 'fa-file-word',
+                'docx': 'fa-file-word',
+                'xls': 'fa-file-excel',
+                'xlsx': 'fa-file-excel',
+                'zip': 'fa-file-archive',
+                'rar': 'fa-file-archive',
+                'txt': 'fa-file-alt',
+                'jpg': 'fa-file-image',
+                'jpeg': 'fa-file-image',
+                'png': 'fa-file-image',
+                'gif': 'fa-file-image'
+            };
+            
+            return iconMap[extension.toLowerCase()] || 'fa-file';
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Tools Hub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌓</button>
+    
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            <span>CyberSec Hub</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <div class="burger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <i class="fas fa-shield-alt hero-bg-icon"></i>
+        <div class="hero-content">
+            <h1>Welcome to Cybersecurity Tools Hub</h1>
+            <p>Your one-stop destination for cybersecurity tools and resources</p>
+            <a href="#tools" class="cta-button">Explore Tools</a>
+        </div>
+    </section>
+
+    <section id="tools" class="tools-section">
+        <h2>Our Security Tools</h2>
+        <div class="tools-grid">
+            <div class="tool-card">
+                <i class="fas fa-fingerprint"></i>
+                <h3>Hash Reputation Checker</h3>
+                <p>Check Hash against VirusTotal</p>
+                <a href="/hash-checker" class="tool-link">Try Tool</a>
+            </div>
+            <div class="tool-card">
+                <i class="fas fa-code"></i>
+                <h3>Cyberchef</h3>
+                <p>Encode, decode, and analyze data</p>
+                <a href="http://127.0.0.1:5006" class="tool-link">Try Tool</a>
+            </div>
+            <div class="tool-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>OWASP Risk Rating</h3>
+                <p>Calculate and assess security vulnerabilities</p>
+                <a href="owasp/index.html" class="tool-link">Try Tool</a>
+            </div>
+            <div class="tool-card">
+                <i class="fas fa-search"></i>
+                <h3>IP Reputation Checker</h3>
+                <p>Check IP addresses against VirusTotal</p>
+                <a href="/ip-checker" class="tool-link">Try Tool</a>
+            </div>
+            <div class="tool-card">
+                <i class="fas fa-link"></i>
+                <h3>URL Reputation Checker</h3>
+                <p>Check URLs against VirusTotal's database for security analysis</p>
+                <a href="http://127.0.0.1:5003" class="tool-link">Try Tool</a>
+            </div>
+            <div class="tool-card">
+                <i class="fas fa-bug"></i>
+                <h3>Vulnerability Scanner</h3>
+                <p>Scan websites for headers, SSL, ports & more</p>
+                <a href="http://localhost:5008" class="tool-link">Try Tool</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <h2>About Me</h2>
+        <div class="about-content">
+            <div class="about-text">
+                <p>I am a passionate cybersecurity enthusiast dedicated to creating tools and resources that help make the digital world safer. With expertise in various security domains, I aim to provide practical solutions for security challenges.</p>
+                <div class="skills">
+                    <h3>Skills</h3>
+                    <ul>
+                        <li>Network Security</li>
+                        <li>Penetration Testing</li>
+                        <li>Security Analysis</li>
+                        <li>Tool Development</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="contact-info">
+                <h3>Contact</h3>
+                <p><i class="fas fa-envelope"></i> deepanshup26@gmail.com</p>
+                <p><i class="fab fa-github"></i> github.com/DE3PANS1U</p>
+                <p><i class="fab fa-linkedin"></i> linkedin.com/in/deepanshupatel/</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#tools">Tools</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect With Me</h4>
+                <div class="social-links">
+                    <a href="https://github.com/DE3PANS1U" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://www.linkedin.com/in/deepanshupatel/" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Cybersecurity Tools Hub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 
