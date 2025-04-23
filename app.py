@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory, session
 import requests
 import json
 import pandas as pd
@@ -17,6 +17,7 @@ import urllib.parse
 import html
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Set a secret key for session management
 
 # Create uploads directory if it doesn't exist
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -456,9 +457,13 @@ def process_hash():
             result['hash'] = hash_value
         results.append(result)
     
-    # Save results to Excel
-    df = pd.DataFrame(results)
-    df.to_excel('hash_scan_results.xlsx', index=False)
+    # Save results to Excel with timestamp
+    if results:
+        timestamp = int(time.time())
+        filename = f'hash_scan_results_{timestamp}.xlsx'
+        df = pd.DataFrame(results)
+        df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+        session['last_hash_scan_file'] = filename
     
     return jsonify(results)
 
@@ -498,6 +503,15 @@ def process_ips():
                 results.append(formatted_result)
                 app.logger.info(f'Formatted result: {formatted_result}')
 
+        # Save results to a unique file with timestamp
+        if results:
+            timestamp = int(time.time())
+            filename = f'ip_scan_results_{timestamp}.xlsx'
+            df = pd.DataFrame(results)
+            df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+            # Store the filename in session
+            session['last_ip_scan_file'] = filename
+
         app.logger.info(f'Final results: {results}')
         response = {'results': results}
         app.logger.info(f'Sending response: {response}')
@@ -529,7 +543,7 @@ def upload_ip():
         if file.filename.endswith(('.xlsx', '.xls')):
             app.logger.info('Processing Excel file')
             # Save the uploaded Excel file temporarily
-            file_path = 'temp_upload.xlsx'
+            file_path = os.path.join(UPLOAD_FOLDER, 'temp_upload.xlsx')
             file.save(file_path)
             try:
                 # Read IPs from Excel file
@@ -569,11 +583,14 @@ def upload_ip():
                 results.append(formatted_result)
                 app.logger.info(f'Formatted result: {formatted_result}')
 
-        # Save results to Excel for download
+        # Save results to a unique file with timestamp
         if results:
-            app.logger.info('Saving results to Excel')
+            timestamp = int(time.time())
+            filename = f'ip_scan_results_{timestamp}.xlsx'
             df = pd.DataFrame(results)
-            df.to_excel('ip_scan_results.xlsx', index=False)
+            df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+            # Store the filename in session
+            session['last_ip_scan_file'] = filename
 
         app.logger.info(f'Final results: {results}')
         response = {'results': results}
@@ -585,73 +602,114 @@ def upload_ip():
 
 @app.route('/download_ip')
 def download_ip():
-    return send_file('ip_scan_results.xlsx', as_attachment=True)
+    try:
+        # Get the filename from session
+        filename = session.get('last_ip_scan_file')
+        if not filename:
+            return jsonify({'error': 'No scan results available'}), 404
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Results file not found'}), 404
+
+        return send_file(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='ip_scan_results.xlsx'
+        )
+    except Exception as e:
+        app.logger.error(f'Error in download_ip: {str(e)}')
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    if 'file' not in request.files:
-        return jsonify({"error": "No file provided"})
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"error": "No file selected"})
-    
-    if not file.filename.endswith('.xlsx'):
-        return jsonify({"error": "Only Excel files are supported"})
-    
     try:
-        # Save the uploaded file
-        file_path = 'uploaded.xlsx'
-        file.save(file_path)
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"})
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"})
+            
+        if not file.filename.endswith('.xlsx'):
+            return jsonify({"error": "Only Excel files are supported"})
         
-        # Read hashes from the file
-        df = pd.read_excel(file_path)
-        hashes = []
-        
-        # Try to find the column containing hashes
-        for column in df.columns:
-            # Check if the column contains hash-like strings
-            column_hashes = df[column].astype(str).str.strip()
-            # Filter for valid hash lengths (MD5: 32, SHA1: 40, SHA256: 64)
-            valid_hashes = column_hashes[column_hashes.str.match(r'^[a-fA-F0-9]{32,64}$')]
-            if not valid_hashes.empty:
-                hashes = valid_hashes.tolist()
-                break
-        
-        if not hashes:
-            return jsonify({"error": "No valid hashes found in the Excel file"})
-        
-        # Check each hash
-        results = []
-        for hash_value in hashes:
-            result = check_hash(hash_value)
-            if "error" not in result:
-                result['hash'] = hash_value
-                # Ensure all numeric values are integers
-                result['malicious'] = int(result.get('malicious', 0))
-                result['suspicious'] = int(result.get('suspicious', 0))
-                result['harmless'] = int(result.get('harmless', 0))
-                result['undetected'] = int(result.get('undetected', 0))
-            else:
-                result['hash'] = hash_value
-            results.append(result)
-        
-        # Save results to Excel
-        df = pd.DataFrame(results)
-        # Convert numeric columns to integers
-        numeric_columns = ['malicious', 'suspicious', 'harmless', 'undetected']
-        for col in numeric_columns:
-            if col in df.columns:
-                df[col] = df[col].fillna(0).astype(int)
-        df.to_excel('hash_scan_results.xlsx', index=False)
-        
-        return jsonify(results)
+        try:
+            # Save the uploaded file
+            file_path = os.path.join(UPLOAD_FOLDER, secure_filename(file.filename))
+            file.save(file_path)
+            
+            # Read hashes from the file
+            df = pd.read_excel(file_path)
+            hashes = []
+            
+            # Try to find the column containing hashes
+            for column in df.columns:
+                # Check if the column contains hash-like strings
+                column_hashes = df[column].astype(str).str.strip()
+                # Filter for valid hash lengths (MD5: 32, SHA1: 40, SHA256: 64)
+                valid_hashes = column_hashes[column_hashes.str.match(r'^[a-fA-F0-9]{32,64}$')]
+                if not valid_hashes.empty:
+                    hashes = valid_hashes.tolist()
+                    break
+            
+            if not hashes:
+                return jsonify({"error": "No valid hashes found in the Excel file"})
+            
+            # Check each hash
+            results = []
+            for hash_value in hashes:
+                result = check_hash(hash_value)
+                if "error" not in result:
+                    result['hash'] = hash_value
+                    # Ensure all numeric values are integers
+                    result['malicious'] = int(result.get('malicious', 0))
+                    result['suspicious'] = int(result.get('suspicious', 0))
+                    result['harmless'] = int(result.get('harmless', 0))
+                    result['undetected'] = int(result.get('undetected', 0))
+                results.append(result)
+            
+            # Save results to Excel with timestamp
+            if results:
+                timestamp = int(time.time())
+                filename = f'hash_scan_results_{timestamp}.xlsx'
+                df = pd.DataFrame(results)
+                df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+                session['last_hash_scan_file'] = filename
+            
+            return jsonify(results)
+        finally:
+            # Clean up the uploaded file
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except:
+                pass
     except Exception as e:
         return jsonify({"error": str(e)})
 
 @app.route('/download')
 def download():
-    return send_file('hash_scan_results.xlsx', as_attachment=True)
+    try:
+        # Get the filename from session
+        filename = session.get('last_hash_scan_file')
+        if not filename:
+            return jsonify({'error': 'No scan results available'}), 404
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Results file not found'}), 404
+
+        return send_file(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='hash_scan_results.xlsx'
+        )
+    except Exception as e:
+        app.logger.error(f'Error in download: {str(e)}')
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
@@ -679,7 +737,9 @@ def upload_file():
             result['filename'] = filename
             result['hash'] = file_hash
             
-            # Save results to Excel for download
+            # Save results to Excel with timestamp
+            timestamp = int(time.time())
+            results_filename = f'file_scan_results_{timestamp}.xlsx'
             df = pd.DataFrame([{
                 'filename': filename,
                 'hash': file_hash,
@@ -688,7 +748,8 @@ def upload_file():
                 'harmless': result.get('harmless', 0),
                 'undetected': result.get('undetected', 0)
             }])
-            df.to_excel('file_scan_results.xlsx', index=False)
+            df.to_excel(os.path.join(UPLOAD_FOLDER, results_filename), index=False)
+            session['last_file_scan_file'] = results_filename
         
         # Clean up the temporary file
         os.remove(file_path)
@@ -700,11 +761,17 @@ def upload_file():
 @app.route('/download_file')
 def download_file():
     try:
-        if not os.path.exists('file_scan_results.xlsx'):
-            return jsonify({"error": "No results available to download"}), 404
+        # Get the filename from session
+        filename = session.get('last_file_scan_file')
+        if not filename:
+            return jsonify({'error': 'No scan results available'}), 404
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Results file not found'}), 404
             
         return send_file(
-            'file_scan_results.xlsx',
+            file_path,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name='file_scan_results.xlsx'
@@ -736,12 +803,13 @@ def process_urls():
                 "details": f"Processing error: {str(e)}"
             })
     
-    # Save results to Excel
-    try:
+    # Save results to Excel with timestamp
+    if results:
+        timestamp = int(time.time())
+        filename = f'url_scan_results_{timestamp}.xlsx'
         df = pd.DataFrame(results)
-        df.to_excel('url_scan_results.xlsx', index=False)
-    except Exception as e:
-        app.logger.error(f"Error saving results to Excel: {str(e)}")
+        df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+        session['last_url_scan_file'] = filename
     
     return jsonify(results)
 
@@ -800,12 +868,13 @@ def upload_urls():
                     "details": f"Processing error: {str(e)}"
                 })
         
-        # Save results to Excel
-        try:
+        # Save results to Excel with timestamp
+        if results:
+            timestamp = int(time.time())
+            filename = f'url_scan_results_{timestamp}.xlsx'
             df = pd.DataFrame(results)
-            df.to_excel('url_scan_results.xlsx', index=False)
-        except Exception as e:
-            app.logger.error(f"Error saving results to Excel: {str(e)}")
+            df.to_excel(os.path.join(UPLOAD_FOLDER, filename), index=False)
+            session['last_url_scan_file'] = filename
         
         # Clean up the temporary file
         try:
@@ -820,7 +889,25 @@ def upload_urls():
 
 @app.route('/download_urls')
 def download_urls():
-    return send_file('url_scan_results.xlsx', as_attachment=True)
+    try:
+        # Get the filename from session
+        filename = session.get('last_url_scan_file')
+        if not filename:
+            return jsonify({'error': 'No scan results available'}), 404
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': 'Results file not found'}), 404
+
+        return send_file(
+            file_path,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='url_scan_results.xlsx'
+        )
+    except Exception as e:
+        app.logger.error(f'Error in download_urls: {str(e)}')
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/owasp-calculator')
 def owasp_calculator():
