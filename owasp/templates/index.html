@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Risk Rating Calculator - Cybersecurity Tools Hub</title>
+    <!-- Link main styles FIRST to potentially inherit variables -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='owasp.css') }}"> <!-- Specific OWASP styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Chart.js first -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Load our scripts in order -->
+    <script src="{{ url_for('static', filename='chart.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='matrixChart.js') }}" defer></script>
+</head>
+<body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">
+        <i class="fas fa-shield-alt"></i> <!-- Default to shield (light mode) -->
+    </button>
+
+    <!-- Add a wrapper to apply dark theme correctly -->
+    <div class="owasp-page-container">
+        <a href="../index.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Tools Hub
+        </a>
+        
+        <h1 class="page-title">OWASP Risk Rating Calculator</h1>
+        <p class="subtitle">Calculate and assess security vulnerabilities using the OWASP methodology. Adjust the factors below based on your context.</p>
+
+        <div class="methodology-section">
+            <h2>Methodology Overview</h2>
+            <p>OWASP Risk Rating Methodology helps calculate the risk of security vulnerabilities through a systematic approach.</p>
+            
+            <div class="note">
+                <strong>Key Points:</strong>
+                <ul>
+                    <li>Risk is calculated as: RISK = Likelihood * Impact</li>
+                    <li>Risk is subjective and contextual to each organization</li>
+                    <li>The framework is customizable to fit specific needs</li>
+                </ul>
+            </div>
+        </div>
+
+        <form id="risk-form" class="calculator-grid">
+            <!-- Threat Agent Factors -->
+            <div class="factor-section">
+                <h2><i class="fas fa-user-secret"></i> Threat Agent Factors</h2>
+                <div class="form-group">
+                    <label for="skill-level">Skill Level</label>
+                    <select id="skill-level" name="skill-level" onchange="calculateRisk()">
+                        <option value="1">No technical skills (1)</option>
+                        <option value="3">Some technical skills (3)</option>
+                        <option value="5">Advanced computer user (5)</option>
+                        <option value="7">Network and programming skills (7)</option>
+                        <option value="9">Security penetration skills (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="motive">Motive</label>
+                    <select id="motive" name="motive" onchange="calculateRisk()">
+                        <option value="1">Low or no reward (1)</option>
+                        <option value="4">Possible reward (4)</option>
+                        <option value="9">High reward (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="opportunity">Opportunity</label>
+                    <select id="opportunity" name="opportunity" onchange="calculateRisk()">
+                        <option value="1">Full access or expensive resource (1)</option>
+                        <option value="4">Special access or resources (4)</option>
+                        <option value="7">Some access or resources (7)</option>
+                        <option value="9">No access or resources (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="size">Size</label>
+                    <select id="size" name="size" onchange="calculateRisk()">
+                        <option value="2">Developers, System administrators (2)</option>
+                        <option value="4">Intranet users (4)</option>
+                        <option value="6">Partners (6)</option>
+                        <option value="9">Anonymous Internet users (9)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vulnerability Factors -->
+            <div class="factor-section">
+                <h2><i class="fas fa-shield-alt"></i> Vulnerability Factors</h2>
+                <div class="form-group">
+                    <label for="ease-of-discovery">Ease of Discovery</label>
+                    <select id="ease-of-discovery" name="ease-of-discovery" onchange="calculateRisk()">
+                        <option value="1">Practically impossible (1)</option>
+                        <option value="3">Difficult (3)</option>
+                        <option value="7">Easy (7)</option>
+                        <option value="9">Automated tools available (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ease-of-exploit">Ease of Exploit</label>
+                    <select id="ease-of-exploit" name="ease-of-exploit" onchange="calculateRisk()">
+                        <option value="1">Theoretical (1)</option>
+                        <option value="3">Difficult (3)</option>
+                        <option value="5">Easy (5)</option>
+                        <option value="9">Automated tools available (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="awareness">Awareness</label>
+                    <select id="awareness" name="awareness" onchange="calculateRisk()">
+                        <option value="1">Unknown (1)</option>
+                        <option value="4">Hidden (4)</option>
+                        <option value="6">Obvious (6)</option>
+                        <option value="9">Public knowledge (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="intrusion-detection">Intrusion Detection</label>
+                    <select id="intrusion-detection" name="intrusion-detection" onchange="calculateRisk()">
+                        <option value="1">Active detection in application (1)</option>
+                        <option value="3">Logged and reviewed (3)</option>
+                        <option value="8">Logged without review (8)</option>
+                        <option value="9">Not logged (9)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Technical Impact Factors -->
+            <div class="factor-section">
+                 <h2><i class="fas fa-laptop-code"></i> Technical Impact Factors</h2>
+                <div class="form-group">
+                    <label for="loss-confidentiality">Loss of Confidentiality</label>
+                    <select id="loss-confidentiality" name="loss-confidentiality" onchange="calculateRisk()">
+                        <option value="2">Minimal non-sensitive data disclosed (2)</option>
+                        <option value="6">Minimal critical data disclosed (6)</option>
+                        <option value="6">Extensive non-sensitive data disclosed (6)</option>
+                        <option value="7">Extensive critical data disclosed (7)</option>
+                        <option value="9">All data disclosed (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="loss-integrity">Loss of Integrity</label>
+                    <select id="loss-integrity" name="loss-integrity" onchange="calculateRisk()">
+                        <option value="1">Minimal slightly corrupt data (1)</option>
+                        <option value="3">Minimal seriously corrupt data (3)</option>
+                        <option value="5">Extensive slightly corrupt data (5)</option>
+                        <option value="7">Extensive seriously corrupt data (7)</option>
+                        <option value="9">All data totally corrupt (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="loss-availability">Loss of Availability</label>
+                    <select id="loss-availability" name="loss-availability" onchange="calculateRisk()">
+                        <option value="1">Minimal secondary services interrupted (1)</option>
+                        <option value="5">Minimal primary services interrupted (5)</option>
+                        <option value="5">Extensive secondary services interrupted (5)</option>
+                        <option value="7">Extensive primary services interrupted (7)</option>
+                        <option value="9">All services completely lost (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="loss-accountability">Loss of Accountability</label>
+                    <select id="loss-accountability" name="loss-accountability" onchange="calculateRisk()">
+                        <option value="1">Fully traceable (1)</option>
+                        <option value="7">Possibly traceable (7)</option>
+                        <option value="9">Completely anonymous (9)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Business Impact Factors -->
+            <div class="factor-section">
+                 <h2><i class="fas fa-briefcase"></i> Business Impact Factors</h2>
+                <div class="form-group">
+                    <label for="financial-damage">Financial Damage</label>
+                    <select id="financial-damage" name="financial-damage" onchange="calculateRisk()">
+                        <option value="1">Less than the cost to fix (1)</option>
+                        <option value="3">Minor effect on annual profit (3)</option>
+                        <option value="7">Significant effect on annual profit (7)</option>
+                        <option value="9">Bankruptcy (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reputation-damage">Reputation Damage</label>
+                    <select id="reputation-damage" name="reputation-damage" onchange="calculateRisk()">
+                        <option value="1">Minimal damage (1)</option>
+                        <option value="4">Loss of major accounts (4)</option>
+                        <option value="5">Loss of goodwill (5)</option>
+                        <option value="9">Brand damage (9)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="non-compliance">Non-compliance</label>
+                    <select id="non-compliance" name="non-compliance" onchange="calculateRisk()">
+                        <option value="2">Minor violation (2)</option>
+                        <option value="5">Clear violation (5)</option>
+                        <option value="7">High profile violation (7)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="privacy-violation">Privacy Violation</label>
+                    <select id="privacy-violation" name="privacy-violation" onchange="calculateRisk()">
+                        <option value="3">One individual (3)</option>
+                        <option value="5">Hundreds of people (5)</option>
+                        <option value="7">Thousands of people (7)</option>
+                        <option value="9">Millions of people (9)</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div class="result-section">
+            <h2><i class="fas fa-chart-bar"></i> Risk Assessment Results</h2>
+            
+            <!-- Moved Scores Display to the top -->
+            <div class="scores">
+                <div>
+                    <h3>Likelihood</h3>
+                    <div class="risk-score" id="likelihood-score">0.0</div>
+                </div>
+                <div>
+                    <h3>Impact</h3>
+                    <div class="risk-score" id="impact-score">0.0</div>
+                </div>
+                <div>
+                    <h3>Risk Level</h3>
+                    <div class="risk-score" id="risk-level">NOTE</div>
+                </div>
+            </div>
+
+            <!-- New Row for Charts -->
+            <div class="charts-row">
+                <!-- Radar Chart -->
+                <div class="chart-container">
+                    <h3>Factor Breakdown (Radar)</h3>
+                    <canvas id="myChart"></canvas>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="chart-container"> 
+                     <h3>Likelihood vs Impact (Bar)</h3>
+                     <canvas id="likelihoodImpactChart"></canvas>
+                </div>
+
+                <!-- Matrix Chart -->
+                <div class="chart-container">
+                    <h3>Risk Matrix</h3>
+                    <canvas id="matrixChart"></canvas>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+    <!-- Mitigation Suggestions Section -->
+    <div class="suggestions-section">
+        <h2><i class="fas fa-shield-alt"></i> Mitigation Suggestions</h2>
+        <div id="suggestions-container">
+            <div class="suggestions-header">
+                <span class="factor-label">Risk Factor</span>
+                <span class="suggestion-label">Suggested Mitigation</span>
+            </div>
+            <div id="suggestions-list" class="suggestions-list">
+                <!-- Suggestions will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize theme
+        document.documentElement.setAttribute('data-theme', 'light');
+        
+        // Get chart configuration from server
+        const chartConfig = {{ chart_config|safe }};
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.onclick = function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                themeToggle.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                
+                // Update chart themes
+                if (typeof updateChartTheme === 'function') {
+                    updateChartTheme();
+                }
+                if (typeof updateMatrixChartTheme === 'function') {
+                    updateMatrixChartTheme();
+                }
+            };
+        }
+        
+        // Initialize when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial calculation
+            if (typeof calculateRisk === 'function') {
+                calculateRisk();
+            }
+            
+            // Initialize charts
+            if (typeof initCharts === 'function') {
+                initCharts();
+            }
+            if (typeof initMatrixChart === 'function') {
+                initMatrixChart();
+            }
+        });
+    </script>
+</body>
+</html> 

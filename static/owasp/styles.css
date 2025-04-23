@@ -1,0 +1,71 @@
+/* Base theme variables */
+:root {
+    --primary-color: #00A8E8;
+    --secondary-color: #007EA7;
+    --accent-color: #00E0C7;
+    --text-color: #1A2A3A;
+    --bg-color: #FFFFFF;
+    --card-bg: #F8F9FA;
+    --border-color: #DDE4ED;
+    --dark-color: #1A2A3A;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+    --primary-color: #00BFFF;
+    --secondary-color: #008ECC;
+    --accent-color: #00FFD1;
+    --text-color: #C9D1D9;
+    --bg-color: #0D1117;
+    --card-bg: #161B22;
+    --border-color: #30363d;
+    --dark-color: #0D1117;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Apply theme transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Base styles */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    background: var(--card-bg);
+    color: var(--primary-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    padding: 0;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    background: var(--primary-color);
+    color: var(--bg-color);
+}
+
+.theme-toggle i {
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+} 

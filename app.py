@@ -258,7 +258,13 @@ def check_url(url):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', tools=[
+        {'name': 'Hash Reputation Checker', 'url': '/hash-checker', 'icon': 'fas fa-hashtag'},
+        {'name': 'IP Reputation Checker', 'url': '/ip-checker', 'icon': 'fas fa-network-wired'},
+        {'name': 'File Reputation Checker', 'url': '/file-checker', 'icon': 'fas fa-file'},
+        {'name': 'URL Reputation Checker', 'url': '/url-checker', 'icon': 'fas fa-link'},
+        {'name': 'OWASP Risk Rating Calculator', 'url': '/owasp-calculator', 'icon': 'fas fa-shield-alt'}
+    ])
 
 @app.route('/styles.css')
 def serve_css():
@@ -292,6 +298,8 @@ def serve_static(filename):
         return send_from_directory('IP Reputation Checker/static', filename)
     elif filename.startswith('file-checker'):
         return send_from_directory('File Reputation Checker/static', filename)
+    elif filename.startswith('owasp/'):
+        return send_from_directory('static', filename)
     return send_from_directory('.', filename)
 
 @app.route('/process_hash', methods=['POST'])
@@ -677,6 +685,22 @@ def upload_urls():
 @app.route('/download_urls')
 def download_urls():
     return send_file('url_scan_results.xlsx', as_attachment=True)
+
+@app.route('/owasp-calculator')
+def owasp_calculator():
+    # Chart configuration for the risk matrix
+    chart_config = {
+        'riskLevels': {
+            'low': {'min': 0, 'max': 3, 'color': '#4CAF50'},
+            'medium': {'min': 3, 'max': 6, 'color': '#FFC107'},
+            'high': {'min': 6, 'max': 9, 'color': '#F44336'}
+        },
+        'matrixLabels': {
+            'x': ['Low', 'Medium', 'High'],
+            'y': ['Low', 'Medium', 'High']
+        }
+    }
+    return render_template('owasp/index.html', chart_config=chart_config)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 

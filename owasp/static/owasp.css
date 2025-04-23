@@ -1,0 +1,605 @@
+/* OWASP Calculator Styles - Modernized */
+:root {
+    /* Inherit or redefine from main styles.css if needed */
+    /* Example using similar names for consistency: */
+    --owasp-primary: var(--primary-color, #00A8E8);
+    --owasp-secondary: var(--secondary-color, #007EA7);
+    --owasp-accent: var(--accent-color, #00E0C7);
+    --owasp-text: var(--text-color, #1A2A3A);
+    --owasp-bg: var(--bg-color, #FFFFFF);
+    --owasp-card-bg: var(--card-bg, #F8F9FA);
+    --owasp-border: var(--border-color, #DDE4ED);
+    --owasp-shadow: rgba(0, 168, 232, 0.1);
+
+    /* Risk Level Specific - Brighter Tones */
+    --risk-note-bg: #e9ecef;
+    --risk-note-text: #495057;
+    --risk-low-bg: rgba(0, 204, 153, 0.1); /* success-color */
+    --risk-low-text: #00CC99;
+    --risk-medium-bg: rgba(255, 170, 0, 0.1); /* warning-color */
+    --risk-medium-text: #FFAA00;
+    --risk-high-bg: rgba(255, 91, 91, 0.1); /* danger-color */
+    --risk-high-text: #FF5B5B;
+    --risk-critical-bg: rgba(255, 91, 91, 0.3);
+    --risk-critical-text: #FF5B5B; 
+}
+
+[data-theme="dark"] body .owasp-page-container { /* Target specifically when dark */
+    --owasp-primary: var(--primary-color, #00BFFF);
+    --owasp-secondary: var(--secondary-color, #008ECC);
+    --owasp-accent: var(--accent-color, #00FFD1);
+    --owasp-text: var(--text-color, #C9D1D9);
+    --owasp-bg: var(--bg-color, #0D1117);
+    --owasp-card-bg: var(--card-bg, #161B22);
+    --owasp-border: var(--border-color, #30363d);
+    --owasp-shadow: rgba(0, 191, 255, 0.1);
+
+    /* Risk Level Specific - Dark Theme */
+    --risk-note-bg: #30363d;
+    --risk-note-text: #adb5bd;
+    --risk-low-bg: rgba(0, 230, 167, 0.15);
+    --risk-low-text: #00E6A7;
+    --risk-medium-bg: rgba(255, 183, 0, 0.15);
+    --risk-medium-text: #FFB700;
+    --risk-high-bg: rgba(255, 107, 107, 0.15);
+    --risk-high-text: #FF6B6B;
+    --risk-critical-bg: rgba(255, 107, 107, 0.3);
+    --risk-critical-text: #FF6B6B;
+}
+
+body {
+    background-color: var(--owasp-bg);
+    color: var(--owasp-text);
+    font-family: 'Poppins', sans-serif; /* Ensure font consistency */
+}
+
+.owasp-page-container {
+    max-width: 1400px; /* Wider container */
+    margin: 0 auto;
+    padding: 2rem 3rem; /* More padding */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background-color: var(--owasp-card-bg);
+    border: 1px solid var(--owasp-border);
+    border-radius: 50px; /* Pill shape */
+    text-decoration: none;
+    color: var(--owasp-text);
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.back-button:hover {
+    background-color: var(--owasp-accent);
+    color: var(--dark-color, #1A2A3A); /* Use dark text on accent */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--owasp-shadow);
+    border-color: var(--owasp-accent);
+}
+
+.page-title {
+    font-size: 2.8rem; /* Slightly larger */
+    color: var(--owasp-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    /* animation: slideIn 0.5s ease-in-out; */ /* Keep animations subtle */
+}
+
+.subtitle {
+    color: var(--owasp-secondary);
+    margin-bottom: 3rem; /* More space */
+    font-size: 1.1rem;
+    /* animation: slideIn 0.5s ease-in-out 0.1s backwards; */
+}
+
+.methodology-section,
+.factor-section,
+.result-section,
+.suggestions-section /* New section style */
+{
+    background-color: var(--owasp-card-bg);
+    padding: 1.5rem 2rem; /* Adjusted padding */
+    border-radius: 12px; /* More rounded */
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px var(--owasp-shadow);
+    border: 1px solid var(--owasp-border);
+    /* animation: slideIn 0.5s ease-in-out 0.2s backwards; */
+    transition: box-shadow 0.3s ease;
+}
+
+.methodology-section:hover,
+.factor-section:hover,
+.result-section:hover,
+.suggestions-section:hover {
+    box-shadow: 0 8px 20px var(--owasp-shadow);
+}
+
+.methodology-section h2,
+.factor-section h2,
+.result-section h2,
+.suggestions-section h2 /* New section style */
+ {
+    color: var(--owasp-primary);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--owasp-secondary);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.note {
+    background-color: var(--owasp-bg);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid var(--owasp-secondary);
+    margin-top: 1rem;
+}
+
+.note strong {
+    color: var(--owasp-primary);
+}
+
+.note ul {
+    margin: 0.5rem 0 0 1rem;
+    padding-left: 0.5rem;
+    list-style: disc;
+    color: var(--owasp-text);
+}
+
+.calculator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Slightly wider min */
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.75rem; /* More space */
+    color: var(--owasp-text);
+    font-weight: 600; /* Bolder labels */
+    font-size: 1rem;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--owasp-border);
+    border-radius: 8px; /* More rounded */
+    background-color: var(--owasp-bg);
+    color: var(--owasp-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    appearance: none; /* Remove default arrow */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%23${(props) => props.theme.textColor.substring(1)}" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>'); /* Basic custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+/* Custom arrow color for dark theme - requires JS or different approach */
+
+.form-group select:hover {
+    border-color: var(--owasp-accent);
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--owasp-accent);
+    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb, 0, 224, 199), 0.25);
+}
+
+/* Remove Results Grid Style */
+/* 
+.results-grid { 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+*/
+
+/* Style for the standalone Scores section */
+.scores {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2.5rem; /* Space below scores */
+    padding: 1.5rem;
+    background-color: var(--owasp-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--owasp-shadow);
+    border: 1px solid var(--owasp-border);
+}
+
+.scores > div {
+    flex: 1;
+    padding: 0 1rem;
+}
+
+.scores h3 {
+    font-size: 1.1rem;
+    color: var(--owasp-text);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+/* Style for the row containing the charts */
+.charts-row {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 2rem; /* Space between charts */
+    margin-bottom: 2rem; /* Space below charts row */
+}
+
+.chart-container {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--owasp-card-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--owasp-shadow);
+    border: 1px solid var(--owasp-border);
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+.chart-container h3 {
+    margin-bottom: 1rem;
+    color: var(--owasp-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: calc(100% - 40px) !important;
+    margin: 0 auto;
+}
+
+.risk-score {
+    font-size: 2.5rem;
+    font-weight: 700;
+    padding: 0.5rem 0;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+#likelihood-score { color: var(--owasp-primary); }
+#impact-score { color: var(--owasp-primary); }
+
+#risk-level {
+    margin-top: 0.25rem;
+}
+
+#risk-level.note { background-color: var(--risk-note-bg); color: var(--risk-note-text); }
+#risk-level.low { background-color: var(--risk-low-bg); color: var(--risk-low-text); }
+#risk-level.medium { background-color: var(--risk-medium-bg); color: var(--risk-medium-text); }
+#risk-level.high { background-color: var(--risk-high-bg); color: var(--risk-high-text); }
+#risk-level.critical { background-color: var(--risk-critical-bg); color: var(--risk-critical-text); }
+
+.severity-matrix {
+    width: 100%;
+    border-collapse: separate; /* Allows border-radius */
+    border-spacing: 0;
+    margin-top: auto; /* Push to bottom if container is flex */
+    box-shadow: none; /* Remove duplicate shadow */
+    border-radius: 8px;
+    overflow: hidden; /* Clip cells to rounded corners */
+    border: 1px solid var(--owasp-border);
+}
+
+.severity-matrix th,
+.severity-matrix td {
+    padding: 0.8rem;
+    text-align: center;
+    border: none; /* Remove individual borders */
+    border-bottom: 1px solid var(--owasp-border);
+    border-right: 1px solid var(--owasp-border);
+    color: var(--owasp-text);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+.severity-matrix tr th:last-child,
+.severity-matrix tr td:last-child {
+    border-right: none;
+}
+.severity-matrix tr:last-child td {
+    border-bottom: none;
+}
+
+.severity-matrix th {
+    background-color: var(--owasp-secondary);
+    color: var(--owasp-bg);
+    font-weight: 600;
+}
+
+.severity-matrix td {
+    background-color: var(--owasp-bg);
+}
+
+.severity-matrix td.note { background-color: var(--risk-note-bg); color: var(--risk-note-text); }
+.severity-matrix td.low { background-color: var(--risk-low-bg); color: var(--risk-low-text); }
+.severity-matrix td.medium { background-color: var(--risk-medium-bg); color: var(--risk-medium-text); }
+.severity-matrix td.high { background-color: var(--risk-high-bg); color: var(--risk-high-text); }
+.severity-matrix td.critical { background-color: var(--risk-critical-bg); color: var(--risk-critical-text); }
+
+.severity-matrix td.highlight {
+    outline: 3px solid var(--owasp-accent);
+    outline-offset: -3px;
+    transform: scale(1.05);
+    font-weight: 700;
+    z-index: 1;
+    position: relative;
+}
+
+/* Suggestions Section */
+.suggestions-section ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.suggestions-section li {
+    background-color: var(--owasp-bg);
+    border: 1px solid var(--owasp-border);
+    border-left: 4px solid var(--owasp-primary);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.suggestions-section li:hover {
+    border-left-color: var(--owasp-accent);
+    box-shadow: 0 2px 5px var(--owasp-shadow);
+    transform: translateX(5px);
+}
+
+.suggestions-section strong {
+    color: var(--owasp-primary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+/* Adjust responsive breakpoint if needed */
+/* @media (max-width: 992px) {
+    .results-grid { grid-template-columns: 1fr; } 
+} */
+
+@media (max-width: 768px) {
+    .owasp-page-container { padding: 1rem; }
+    .calculator-grid { grid-template-columns: 1fr; }
+    .page-title { font-size: 2rem; }
+    .subtitle { font-size: 1rem; }
+    .back-button { margin-bottom: 1rem; padding: 0.5rem 1rem; }
+    .charts-row {
+        flex-direction: column;
+    }
+    
+    .chart-container {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Copied Theme Toggle Button Styles */
+.theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: var(--owasp-card-bg); /* Use OWASP page card background */
+    border: 1px solid var(--owasp-border);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 8px var(--owasp-shadow);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 12px var(--owasp-shadow);
+}
+
+.theme-toggle i {
+    color: var(--owasp-primary);
+    transition: color 0.3s ease;
+}
+
+/* Ensure toggle is not displayed on OWASP page based on previous user request */
+/* .theme-toggle {
+    display: none;
+} */
+
+/* Matrix Chart Styles */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    margin: 1rem 0;
+    background: var(--owasp-card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px var(--owasp-shadow);
+    border: 1px solid var(--owasp-border);
+}
+
+.chart-container h3 {
+    margin: 0 0 1rem 0;
+    color: var(--owasp-text);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Risk Level Indicators */
+.risk-score {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+    margin: 0.5rem 0;
+    transition: all 0.3s ease;
+}
+
+.risk-score.note {
+    background-color: var(--risk-note-bg);
+    color: var(--risk-note-text);
+}
+
+.risk-score.low {
+    background-color: var(--risk-low-bg);
+    color: var(--risk-low-text);
+}
+
+.risk-score.medium {
+    background-color: var(--risk-medium-bg);
+    color: var(--risk-medium-text);
+}
+
+.risk-score.high {
+    background-color: var(--risk-high-bg);
+    color: var(--risk-high-text);
+}
+
+.risk-score.critical {
+    background-color: var(--risk-critical-bg);
+    color: var(--risk-critical-text);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .chart-container {
+    background: var(--owasp-card-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .risk-score {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px;
+    }
+    
+    .risk-score {
+        min-width: 80px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Mitigation Suggestions Section */
+.suggestions-section {
+    margin-top: 2rem;
+}
+
+.suggestions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.suggestion-item {
+    background-color: var(--owasp-bg);
+    border: 1px solid var(--owasp-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.suggestion-item h4 {
+    color: var(--owasp-primary);
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.suggestion-item p {
+    color: var(--owasp-text);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.suggestion-item.note {
+    border-left: 4px solid var(--risk-note-text);
+    background-color: var(--risk-note-bg);
+}
+
+.suggestion-item.low {
+    border-left: 4px solid var(--risk-low-text);
+    background-color: var(--risk-low-bg);
+}
+
+.suggestion-item.medium {
+    border-left: 4px solid var(--risk-medium-text);
+    background-color: var(--risk-medium-bg);
+}
+
+.suggestion-item.high {
+    border-left: 4px solid var(--risk-high-text);
+    background-color: var(--risk-high-bg);
+}
+
+.suggestion-item.critical {
+    border-left: 4px solid var(--risk-critical-text);
+    background-color: var(--risk-critical-bg);
+}
+
+.suggestion-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px var(--owasp-shadow);
+}
+
+.no-suggestions {
+    text-align: center;
+    padding: 2rem;
+    color: var(--owasp-text);
+    background-color: var(--owasp-bg);
+    border: 1px solid var(--owasp-border);
+    border-radius: 8px;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .suggestion-item {
+        padding: 1rem;
+    }
+    
+    .suggestion-item h4 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+} 
