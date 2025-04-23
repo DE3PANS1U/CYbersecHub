@@ -14,14 +14,21 @@
     /* Risk Level Specific - Brighter Tones */
     --risk-note-bg: #e9ecef;
     --risk-note-text: #495057;
-    --risk-low-bg: rgba(0, 204, 153, 0.1); /* success-color */
-    --risk-low-text: #00CC99;
-    --risk-medium-bg: rgba(255, 170, 0, 0.1); /* warning-color */
-    --risk-medium-text: #FFAA00;
-    --risk-high-bg: rgba(255, 91, 91, 0.1); /* danger-color */
-    --risk-high-text: #FF5B5B;
-    --risk-critical-bg: rgba(255, 91, 91, 0.3);
-    --risk-critical-text: #FF5B5B; 
+    --risk-low-bg: rgba(40, 167, 69, 0.1);
+    --risk-low-text: #28a745;
+    --risk-medium-bg: rgba(255, 193, 7, 0.1);
+    --risk-medium-text: #ffc107;
+    --risk-high-bg: rgba(220, 53, 69, 0.1);
+    --risk-high-text: #dc3545;
+    --risk-critical-bg: rgba(220, 53, 69, 0.2);
+    --risk-critical-text: #dc3545;
+
+    /* Matrix colors */
+    --matrix-note: #90EE90;
+    --matrix-low: #FFFF00;
+    --matrix-medium: #FFA500;
+    --matrix-high: #FF4444;
+    --matrix-critical: #FF1493;
 
     /* Suggestion-specific variables */
     --suggestion-bg: rgba(255, 255, 255, 0.05);
@@ -34,27 +41,34 @@
     --low-risk-bg: rgba(40, 167, 69, 0.1);
 }
 
-[data-theme="dark"] body .owasp-page-container { /* Target specifically when dark */
-    --owasp-primary: var(--primary-color, #00BFFF);
-    --owasp-secondary: var(--secondary-color, #008ECC);
-    --owasp-accent: var(--accent-color, #00FFD1);
-    --owasp-text: var(--text-color, #C9D1D9);
-    --owasp-bg: var(--bg-color, #0D1117);
-    --owasp-card-bg: var(--card-bg, #161B22);
-    --owasp-border: var(--border-color, #30363d);
-    --owasp-shadow: rgba(0, 191, 255, 0.1);
+[data-theme="dark"] {
+    --owasp-primary: #00BFFF;
+    --owasp-secondary: #0099CC;
+    --owasp-accent: #00FFD1;
+    --owasp-text: #E1E1E6;
+    --owasp-bg: #13111C;
+    --owasp-card-bg: #1C1B22;
+    --owasp-border: #2D2D3B;
+    --owasp-shadow: rgba(0, 191, 255, 0.15);
 
     /* Risk Level Specific - Dark Theme */
-    --risk-note-bg: #30363d;
-    --risk-note-text: #adb5bd;
-    --risk-low-bg: rgba(0, 230, 167, 0.15);
-    --risk-low-text: #00E6A7;
-    --risk-medium-bg: rgba(255, 183, 0, 0.15);
-    --risk-medium-text: #FFB700;
-    --risk-high-bg: rgba(255, 107, 107, 0.15);
+    --risk-note-bg: rgba(255, 255, 255, 0.05);
+    --risk-note-text: #E1E1E6;
+    --risk-low-bg: rgba(40, 167, 69, 0.15);
+    --risk-low-text: #4ADE80;
+    --risk-medium-bg: rgba(255, 193, 7, 0.15);
+    --risk-medium-text: #FFD700;
+    --risk-high-bg: rgba(220, 53, 69, 0.15);
     --risk-high-text: #FF6B6B;
-    --risk-critical-bg: rgba(255, 107, 107, 0.3);
-    --risk-critical-text: #FF6B6B;
+    --risk-critical-bg: rgba(220, 53, 69, 0.25);
+    --risk-critical-text: #FF4444;
+
+    /* Matrix colors - Dark theme */
+    --matrix-note: #2D4A3E;
+    --matrix-low: #4A4A00;
+    --matrix-medium: #804000;
+    --matrix-high: #800000;
+    --matrix-critical: #8B0A50;
 
     /* Suggestion-specific variables */
     --suggestion-bg: rgba(255, 255, 255, 0.05);
@@ -729,11 +743,11 @@ body {
 }
 
 /* Matrix cell colors */
-.matrix-note { background-color: #90EE90 !important; } /* Light green */
-.matrix-low { background-color: #FFFF00 !important; } /* Yellow */
-.matrix-medium { background-color: #FFA500 !important; } /* Orange */
-.matrix-high { background-color: #FF0000 !important; } /* Red */
-.matrix-critical { background-color: #FF69B4 !important; } /* Pink */
+.matrix-note { background-color: var(--matrix-note) !important; } /* Light green */
+.matrix-low { background-color: var(--matrix-low) !important; } /* Yellow */
+.matrix-medium { background-color: var(--matrix-medium) !important; } /* Orange */
+.matrix-high { background-color: var(--matrix-high) !important; } /* Red */
+.matrix-critical { background-color: var(--matrix-critical) !important; } /* Pink */
 
 /* Matrix cell text colors */
 .matrix-note, .matrix-low { color: #000000 !important; } /* Dark text for light backgrounds */
@@ -797,4 +811,112 @@ body {
     .matrix-label {
         font-size: 0.8rem;
     }
+}
+
+/* Update select dropdowns for dark mode */
+[data-theme="dark"] .form-group select {
+    background-color: var(--owasp-bg);
+    color: var(--owasp-text);
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .form-group select:focus {
+    border-color: var(--owasp-primary);
+    box-shadow: 0 0 0 2px rgba(0, 191, 255, 0.2);
+}
+
+/* Update matrix styles for dark mode */
+[data-theme="dark"] .severity-matrix {
+    background-color: var(--owasp-card-bg);
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .severity-matrix th {
+    background-color: var(--owasp-bg);
+    color: var(--owasp-text);
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .severity-matrix td {
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .matrix-note { background-color: var(--matrix-note) !important; }
+[data-theme="dark"] .matrix-low { background-color: var(--matrix-low) !important; }
+[data-theme="dark"] .matrix-medium { background-color: var(--matrix-medium) !important; }
+[data-theme="dark"] .matrix-high { background-color: var(--matrix-high) !important; }
+[data-theme="dark"] .matrix-critical { background-color: var(--matrix-critical) !important; }
+
+/* Update chart containers for dark mode */
+[data-theme="dark"] .chart-container {
+    background-color: var(--owasp-card-bg);
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .chart-container canvas {
+    background-color: var(--owasp-card-bg);
+}
+
+/* Update suggestion items for dark mode */
+[data-theme="dark"] .suggestion-item {
+    background-color: var(--risk-note-bg);
+    border-color: var(--owasp-border);
+}
+
+[data-theme="dark"] .suggestion-item.high {
+    background-color: var(--risk-high-bg);
+    border-left-color: var(--risk-high-text);
+}
+
+[data-theme="dark"] .suggestion-item.medium {
+    background-color: var(--risk-medium-bg);
+    border-left-color: var(--risk-medium-text);
+}
+
+[data-theme="dark"] .suggestion-item.low {
+    background-color: var(--risk-low-bg);
+    border-left-color: var(--risk-low-text);
+}
+
+[data-theme="dark"] .suggestion-item:hover {
+    box-shadow: 0 4px 12px var(--owasp-shadow);
+}
+
+/* Update risk scores for dark mode */
+[data-theme="dark"] .risk-score {
+    background-color: var(--risk-note-bg);
+    color: var(--owasp-text);
+}
+
+[data-theme="dark"] .risk-score.high {
+    background-color: var(--risk-high-bg);
+    color: var(--risk-high-text);
+}
+
+[data-theme="dark"] .risk-score.medium {
+    background-color: var(--risk-medium-bg);
+    color: var(--risk-medium-text);
+}
+
+[data-theme="dark"] .risk-score.low {
+    background-color: var(--risk-low-bg);
+    color: var(--risk-low-text);
+}
+
+/* Improve text contrast in dark mode */
+[data-theme="dark"] .page-title {
+    color: var(--owasp-primary);
+    text-shadow: 0 0 20px rgba(0, 191, 255, 0.2);
+}
+
+[data-theme="dark"] .subtitle {
+    color: var(--owasp-text);
+}
+
+[data-theme="dark"] .methodology-section h2,
+[data-theme="dark"] .factor-section h2,
+[data-theme="dark"] .result-section h2,
+[data-theme="dark"] .suggestions-section h2 {
+    color: var(--owasp-primary);
+    border-bottom-color: var(--owasp-secondary);
 } 
