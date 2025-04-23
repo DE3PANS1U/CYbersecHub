@@ -8,6 +8,13 @@ import hashlib
 from werkzeug.utils import secure_filename
 import base64
 import time
+import codecs
+import csv
+import io
+import math
+from collections import Counter
+import urllib.parse
+import html
 
 app = Flask(__name__)
 
@@ -256,6 +263,133 @@ def check_url(url):
         "details": "Not Found"
     }
 
+# CyberChef functions
+def process_cyberchef_operation(operation, data):
+    """Process a single operation on the input data"""
+    try:
+        if operation == 'base64-encode':
+            return base64.b64encode(data.encode('utf-8')).decode('utf-8')
+        elif operation == 'base64-decode':
+            return base64.b64decode(data.encode('utf-8')).decode('utf-8')
+        elif operation == 'url-encode':
+            return urllib.parse.quote_plus(data)
+        elif operation == 'url-decode':
+            return urllib.parse.unquote_plus(data)
+        elif operation == 'hex-encode':
+            return data.encode('utf-8').hex()
+        elif operation == 'hex-decode':
+            return bytes.fromhex(data).decode('utf-8')
+        elif operation == 'reverse':
+            return data[::-1]
+        elif operation == 'to-uppercase':
+            return data.upper()
+        elif operation == 'to-lowercase':
+            return data.lower()
+        elif operation == 'md5':
+            return hashlib.md5(data.encode('utf-8')).hexdigest()
+        elif operation == 'sha1':
+            return hashlib.sha1(data.encode('utf-8')).hexdigest()
+        elif operation == 'sha256':
+            return hashlib.sha256(data.encode('utf-8')).hexdigest()
+        elif operation == 'rot13':
+            return codecs.encode(data, 'rot_13')
+        elif operation == 'binary-encode':
+            return ' '.join(format(ord(c), '08b') for c in data)
+        elif operation == 'binary-decode':
+            return ''.join(chr(int(b, 2)) for b in data.split())
+        elif operation == 'json-prettify':
+            return json.dumps(json.loads(data), indent=2)
+        elif operation == 'json-minify':
+            return json.dumps(json.loads(data), separators=(',', ':'))
+        elif operation == 'html-encode':
+            return html.escape(data)
+        elif operation == 'html-decode':
+            return html.unescape(data)
+        elif operation == 'csv-to-json':
+            csv_data = csv.DictReader(io.StringIO(data))
+            return json.dumps([row for row in csv_data], indent=2)
+        elif operation == 'text-stats':
+            chars = len(data)
+            words = len(data.split())
+            lines = len(data.splitlines()) or 1
+            return json.dumps({
+                'characters': chars,
+                'words': words,
+                'lines': lines
+            }, indent=2)
+        else:
+            raise ValueError(f"Unknown operation: {operation}")
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON format")
+    except csv.Error:
+        raise ValueError("Invalid CSV format")
+    except Exception as e:
+        raise ValueError(f"Operation failed: {str(e)}")
+
+def calculate_entropy(data):
+    """Calculate Shannon entropy of a string"""
+    if not data:
+        return 0
+    entropy = 0
+    for x in Counter(data).values():
+        p_x = x / len(data)
+        entropy += -p_x * math.log2(p_x)
+    return entropy
+
+# CyberChef routes
+@app.route('/cyberchef')
+def cyberchef():
+    return send_from_directory('Cyberchef/static', 'index.html')
+
+@app.route('/cyberchef/operations', methods=['GET'])
+def get_cyberchef_operations():
+    """Return list of available operations"""
+    operations = [
+        {'id': 'base64-encode', 'name': 'Base64 Encode'},
+        {'id': 'base64-decode', 'name': 'Base64 Decode'},
+        {'id': 'url-encode', 'name': 'URL Encode'},
+        {'id': 'url-decode', 'name': 'URL Decode'},
+        {'id': 'hex-encode', 'name': 'Hex Encode'},
+        {'id': 'hex-decode', 'name': 'Hex Decode'},
+        {'id': 'reverse', 'name': 'Reverse'},
+        {'id': 'to-uppercase', 'name': 'To Uppercase'},
+        {'id': 'to-lowercase', 'name': 'To Lowercase'},
+        {'id': 'md5', 'name': 'MD5 Hash'},
+        {'id': 'sha1', 'name': 'SHA-1 Hash'},
+        {'id': 'sha256', 'name': 'SHA-256 Hash'},
+        {'id': 'rot13', 'name': 'ROT13 Cipher'},
+        {'id': 'binary-encode', 'name': 'Binary Encode'},
+        {'id': 'binary-decode', 'name': 'Binary Decode'},
+        {'id': 'json-prettify', 'name': 'JSON Prettify'},
+        {'id': 'json-minify', 'name': 'JSON Minify'},
+        {'id': 'html-encode', 'name': 'HTML Encode'},
+        {'id': 'html-decode', 'name': 'HTML Decode'},
+        {'id': 'csv-to-json', 'name': 'CSV to JSON'},
+        {'id': 'text-stats', 'name': 'Text Statistics'}
+    ]
+    return jsonify(operations)
+
+@app.route('/cyberchef/bake', methods=['POST'])
+def cyberchef_bake():
+    data = request.get_json()
+    
+    if not data or 'input' not in data or 'operations' not in data:
+        return jsonify({'error': 'Invalid request format'}), 400
+    
+    input_data = data['input']
+    operations = data['operations']
+    
+    result = input_data
+    
+    try:
+        for operation in operations:
+            result = process_cyberchef_operation(operation, result)
+            
+        return jsonify({'output': result})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/')
 def index():
     return render_template('index.html', tools=[
@@ -300,6 +434,8 @@ def serve_static(filename):
         return send_from_directory('File Reputation Checker/static', filename)
     elif filename.startswith('owasp/'):
         return send_from_directory('static', filename)
+    elif filename.startswith('cyberchef/'):
+        return send_from_directory('Cyberchef/static', filename)
     return send_from_directory('.', filename)
 
 @app.route('/process_hash', methods=['POST'])
