@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Web Vulnerability Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- REMOVE Link to main theme styles -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        /* Restore original styles */
+        :root {
+            /* Restore these color overrides */
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --background-color: #0d1117; /* Dark background */
+            --card-background-color: #161b22; /* Slightly lighter card background */
+            --text-color: #c9d1d9; /* Light text for dark background */
+            --text-muted-color: #8b949e;
+            --border-color: #30363d;
+        }
+
+        body {
+            /* Restore original values */
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            margin-bottom: 25px;
+            /* Restore original shadow */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            /* Restore original values */
+            background-color: var(--card-background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .card-header {
+             /* Restore original alpha */
+             background-color: rgba(255, 255, 255, 0.05);
+             border-bottom: 1px solid var(--border-color);
+             padding: 1rem 1.25rem;
+        }
+         .card-header h5 {
+             margin-bottom: 0;
+             font-weight: 500;
+             /* Restore original color */
+             color: #f0f0f0;
+         }
+        .card-body {
+             padding: 1.5rem;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+             /* Restore original color */
+             color: #f0f0f0;
+        }
+
+        /* Input Form */
+        #scanForm label {
+             /* Restore original color */
+             color: var(--text-muted-color);
+             margin-bottom: 0.5rem;
+             font-weight: 500;
+             /* remove opacity */
+        }
+         #scanForm input[type="url"] {
+             /* Restore original alpha */
+             background-color: rgba(255, 255, 255, 0.05);
+             border: 1px solid var(--border-color);
+             color: var(--text-color);
+             border-radius: 6px;
+             padding: 0.75rem 1rem;
+         }
+         #scanForm input[type="url"]::placeholder {
+             /* Restore original color */
+             color: var(--text-muted-color);
+             /* remove opacity */
+         }
+         #scanForm input[type="url"]:focus {
+             /* Restore original alpha */
+             background-color: rgba(255, 255, 255, 0.1);
+             border-color: var(--primary-color);
+             /* Restore original shadow */
+             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+             color: var(--text-color);
+         }
+         #scanForm button[type="submit"] {
+             background-color: var(--primary-color);
+             border: none;
+             padding: 0.75rem 1.5rem;
+             border-radius: 6px;
+             font-weight: 500;
+             transition: background-color 0.2s ease;
+             /* Restore original color assumption */
+             color: #fff;
+         }
+         #scanForm button[type="submit"]:hover {
+             /* Restore original hover */
+             background-color: #0056b3;
+         }
+
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: var(--card-background-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+         .loading .spinner-border {
+             width: 3rem;
+             height: 3rem;
+             color: var(--primary-color);
+         }
+         .loading h4 {
+             margin-top: 1.5rem;
+             /* Restore original color */
+             color: var(--text-muted-color);
+             /* remove opacity */
+         }
+
+        /* Scan Progress */
+         #scanProgress {
+             margin-top: 2rem;
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+             gap: 10px;
+         }
+        .scan-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            /* Restore original alpha */
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 0;
+            transition: all 0.3s ease;
+        }
+        .scan-step span {
+            font-size: 0.9em;
+            font-weight: 500;
+             /* Restore original color */
+             color: var(--text-color);
+        }
+         .scan-step i {
+             font-size: 1em;
+             width: 18px; /* Ensure icons align */
+             text-align: center;
+         }
+         .scan-step.success {
+             /* Restore original colors */
+             background-color: rgba(40, 167, 69, 0.1);
+             border-color: rgba(40, 167, 69, 0.5);
+         }
+         .scan-step.success i {
+             color: var(--success-color);
+         }
+         .scan-step.error {
+             /* Restore original colors */
+             background-color: rgba(220, 53, 69, 0.1);
+             border-color: rgba(220, 53, 69, 0.5);
+         }
+         .scan-step.error i {
+             color: var(--danger-color);
+         }
+
+        .scan-duration {
+            text-align: center;
+            padding: 15px;
+            /* Restore original alpha */
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 20px;
+             /* Restore original color */
+            color: var(--text-muted-color);
+            /* remove opacity */
+            font-weight: 500;
+        }
+
+        /* Results Sections General */
+        .scan-section {
+            margin-bottom: 2rem;
+             padding: 0; /* Remove padding, handled by card-body */
+             background: transparent; /* Use card background */
+             border-radius: 0;
+             box-shadow: none;
+             border: none;
+         }
+        .scan-section h4 {
+             /* Restore original color */
+             color: #f0f0f0;
+             margin-bottom: 1rem; /* Reduced margin */
+            display: flex;
+            align-items: center;
+             gap: 0.75rem;
+             font-weight: 500;
+             font-size: 1.2rem;
+        }
+        .scan-section h4 i {
+             color: var(--primary-color);
+             font-size: 1.1em;
+         }
+
+        /* Target Information */
+        .target-info {
+            /* Restore original gradient */
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: none;
+        }
+        .target-info h4 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+        .target-info p {
+            margin: 0.5rem 0;
+            font-size: 1.1em;
+        }
+         .target-info p strong {
+             font-weight: 500;
+         }
+
+        /* Security Headers / Issues */
+        .headers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+        .header-item {
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            /* Restore original alpha */
+            background: rgba(255, 255, 255, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+         .header-item:hover {
+             transform: translateY(-3px);
+             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+         }
+        .header-item.missing {
+            border-left: 4px solid var(--danger-color);
+             /* Restore original colors */
+            background: rgba(220, 53, 69, 0.1);
+        }
+        .header-item.present {
+            border-left: 4px solid var(--success-color);
+             /* Restore original colors */
+            background: rgba(40, 167, 69, 0.1);
+        }
+         .header-item strong:first-child {
+            font-weight: 500;
+             /* Restore original color */
+            color: #f0f0f0;
+            display: block;
+            margin-bottom: 0.75rem;
+         }
+        .header-details {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+             /* Restore original color */
+            color: var(--text-muted-color);
+            /* remove opacity */
+        }
+        .header-details p {
+            margin: 0.35rem 0;
+        }
+         /* Restore other specific styles that might have been removed */
+         .header-details strong {
+             color: var(--text-color);
+             font-weight: 500;
+         }
+
+        /* Issues List */
+        .issues-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .issue-item {
+            padding: 1rem 1.25rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            position: relative;
+            border-left-width: 4px;
+            transition: background-color 0.2s ease;
+        }
+         .issue-item:hover {
+             background: rgba(255, 255, 255, 0.07);
+         }
+        .issue-item.high {
+            border-left-color: var(--danger-color);
+            background: rgba(220, 53, 69, 0.1);
+        }
+        .issue-item.medium {
+            border-left-color: var(--warning-color);
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107; /* Medium severity text */
+        }
+        .issue-item.low {
+            border-left-color: var(--info-color);
+            background: rgba(23, 162, 184, 0.1);
+            color: #17a2b8; /* Low severity text */
+        }
+        .issue-item strong {
+            font-weight: 500;
+            color: #f0f0f0;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+         .issue-item p {
+             margin-bottom: 0;
+             font-size: 0.95em;
+        }
+
+        .severity-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: white;
+        }
+        .issue-item.high .severity-badge {
+            background: var(--danger-color);
+        }
+        .issue-item.medium .severity-badge {
+            background: var(--warning-color);
+            color: var(--dark-color);
+        }
+        .issue-item.low .severity-badge {
+            background: var(--info-color);
+        }
+
+        /* SSL/TLS Info */
+        .ssl-info {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.25rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+         .ssl-info p {
+             margin-bottom: 0.75rem;
+             font-size: 0.95em;
+         }
+         .ssl-info strong {
+             font-weight: 500;
+             color: #f0f0f0;
+             min-width: 150px;
+             display: inline-block;
+         }
+        .cipher-issues {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+         .cipher-issues h5 {
+             font-size: 1rem;
+             font-weight: 500;
+             color: var(--warning-color);
+             margin-bottom: 1rem;
+         }
+
+        /* Ports */
+        .ports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .port-item {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: block; /* Reset flex */
+            gap: 0;
+            margin-bottom: 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+         .port-item:hover {
+             transform: translateY(-3px);
+             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+         }
+         .port-item p {
+             margin-bottom: 0.5rem;
+             font-size: 0.9em;
+         }
+         .port-item strong {
+             font-weight: 700;
+             color: #f0f0f0;
+             font-size: 1.1em;
+             display: block;
+             margin-bottom: 0.5rem;
+         }
+         .port-item .text-muted {
+             color: var(--text-muted-color) !important;
+         }
+        .security-note {
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: var(--warning-color);
+        }
+         .security-note i {
+             margin-right: 0.5rem;
+         }
+
+        /* DNS */
+        .dns-records {
+            display: grid;
+            gap: 1rem;
+        }
+        .dns-record-type {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.25rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .dns-record-type strong {
+            font-weight: 500;
+            color: #f0f0f0;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        .dns-record-type ul {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+         .dns-record-type li {
+             padding: 0.3rem 0;
+             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+             font-size: 0.95em;
+         }
+         .dns-record-type li:last-child {
+             border-bottom: none;
+         }
+
+        /* WHOIS */
+        .whois-info {
+            background: var(--card-background-color);
+            border-radius: 6px;
+        }
+        .whois-info p {
+            margin-bottom: 0.75rem;
+            font-size: 0.95em;
+        }
+        .whois-label {
+            color: var(--text-muted-color);
+            min-width: 130px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        .whois-value {
+            color: var(--text-color);
+        }
+        .whois-status-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .whois-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        .status-active, 
+        .status-ok {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.4);
+        }
+        .status-expired, 
+        .status-pendingdelete {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.4);
+        }
+        .status-pending, 
+        .status-redemptionperiod {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+        .raw-whois-container {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+        .raw-whois-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .raw-whois-title {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        .raw-whois-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            color: var(--text-muted-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .raw-whois-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+        }
+        .raw-whois-data {
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .raw-whois-data pre {
+            margin: 0;
+            color: var(--text-muted-color);
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .alert {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        .alert i {
+            margin-right: 0.5rem;
+        }
+        .alert hr {
+            border-color: rgba(255, 255, 255, 0.1);
+            margin: 1rem 0;
+        }
+        .alert .text-muted {
+            color: var(--text-muted-color) !important;
+        }
+
+        /* Vulnerability & SQL Injection */
+        .vulnerabilities, .sql-details {
+            display: grid;
+            gap: 1rem;
+        }
+         .vulnerability-item /* Merged with issue-item styles */
+         {
+            /* Uses .issue-item styles defined earlier */
+         }
+         .vulnerability-item pre code {
+             display: block;
+             margin-top: 0.75rem;
+             padding: 0.75rem;
+             background: rgba(0, 0, 0, 0.3);
+             border-radius: 4px;
+             font-size: 0.85em;
+             color: #f0f0f0;
+             max-height: 100px;
+             overflow-y: auto;
+             white-space: pre-wrap;
+             word-break: break-all;
+         }
+
+        .sql-injection-results {
+            background: transparent; /* Use card background */
+            padding: 0; /* Handled by card body */
+            border-radius: 0;
+        }
+        .sql-vulnerability {
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #f8d7da;
+        }
+        .sql-safe {
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 6px;
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.5);
+            color: #d4edda;
+        }
+         .sql-vulnerability p, .sql-safe p {
+             margin-bottom: 0.5rem;
+         }
+         .sql-vulnerability strong, .sql-safe strong {
+             font-weight: 500;
+             color: #f0f0f0;
+        }
+
+        .sql-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+         .sql-details h5 {
+             font-size: 1rem;
+             font-weight: 500;
+             color: var(--text-muted-color);
+             margin-bottom: 1rem;
+         }
+        .sql-detail-item {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid var(--secondary-color);
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .sql-detail-type {
+            font-weight: 500;
+            color: #f0f0f0;
+            text-transform: capitalize;
+        }
+        .sql-detail-payload {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #f0f0f0;
+            word-break: break-all;
+        }
+         .sql-detail-item strong {
+             color: var(--text-muted-color);
+             font-weight: 400;
+         }
+
+        /* Alert Box */
+        .alert-danger {
+             background-color: #dc3545;
+             color: white;
+             border: none;
+             border-radius: 6px;
+        }
+         .alert-danger .alert-heading {
+             color: white;
+         }
+
+        /* General Helpers */
+        .text-success { color: var(--success-color) !important; }
+        .text-danger { color: var(--danger-color) !important; }
+        .text-warning { color: var(--warning-color) !important; }
+        .text-info { color: var(--info-color) !important; }
+        .text-muted { color: var(--text-muted-color) !important; }
+
+        /* ... other existing styles ... */
+
+        /* Add styles for progress log */
+        .progress-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        .progress-log-content {
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid transparent;
+        }
+        .log-info { border-left-color: var(--info-color); color: var(--info-color); }
+        .log-success { border-left-color: var(--success-color); color: var(--success-color); }
+        .log-error { border-left-color: var(--danger-color); color: var(--danger-color); }
+        .log-warning { border-left-color: var(--warning-color); color: var(--warning-color); }
+
+        /* Add styles for logs */
+        .log-entry {
+            padding: 2px 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-time {
+            color: #888;
+            margin-right: 8px;
+        }
+
+        .log-info .log-message {
+            color: #fff;
+        }
+
+        .log-success .log-message {
+            color: #28a745;
+        }
+
+        .log-warning .log-message {
+            color: #ffc107;
+        }
+
+        .log-error .log-message {
+            color: #dc3545;
+        }
+
+        .bg-danger-light {
+            background-color: rgba(220, 53, 69, 0.1) !important;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+        }
+
+        .badge {
+            font-size: 0.875rem;
+            padding: 0.5em 1em;
+        }
+
+        .list-group-item {
+            padding: 1rem 1.25rem;
+        }
+
+        .list-group-item i {
+            margin-right: 0.5rem;
+        }
+
+        .bg-primary {
+            background-color: #007bff !important;
+        }
+
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        #detailedResults .card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- REMOVE Theme Toggle Button -->
+    <!-- <button class="theme-toggle" id="theme-toggle" title="Toggle dark mode">🌓</button> -->
+
+    <div class="container">
+        <!-- Add Back to Home Button -->
+        <a href="http://127.0.0.1:5500" class="btn btn-outline-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to CyberSec Hub</a>
+
+        <h1 class="text-center mb-4">Enhanced Web Vulnerability Scanner</h1>
+        
+        <div class="card">
+            <div class="card-body">
+                <form id="scanForm">
+                    <div class="mb-3">
+                        <label for="urlInput" class="form-label">Target URL</label>
+                        <input type="url" class="form-control" id="urlInput" required placeholder="https://example.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Select Scans to Perform:</label>
+                        <div class="row">
+                            <!-- Network/Infra Scans -->
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="headers" id="scanHeaders" checked>
+                                    <label class="form-check-label" for="scanHeaders"><i class="fas fa-shield-alt text-info"></i> Security Headers</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="ssl" id="scanSsl" checked>
+                                    <label class="form-check-label" for="scanSsl"><i class="fas fa-lock text-success"></i> SSL/TLS</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="dns" id="scanDns" checked>
+                                    <label class="form-check-label" for="scanDns"><i class="fas fa-server text-secondary"></i> DNS Info</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="whois" id="scanWhois" checked>
+                                    <label class="form-check-label" for="scanWhois"><i class="fas fa-info-circle text-secondary"></i> WHOIS Info</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="discovery" id="scanDiscovery" checked>
+                                    <label class="form-check-label" for="scanDiscovery"><i class="fas fa-file-alt text-secondary"></i> Discovery Files</label>
+                                </div>
+                            </div>
+                            <!-- Application Scans -->
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="vuln" id="scanVuln" checked>
+                                    <label class="form-check-label" for="scanVuln"><i class="fas fa-bug text-warning"></i> Page Analysis</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="csrf" id="scanCsrf" checked>
+                                    <label class="form-check-label" for="scanCsrf"><i class="fas fa-shield-virus text-warning"></i> CSRF Check</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="sql" id="scanSql" checked>
+                                    <label class="form-check-label" for="scanSql"><i class="fas fa-database text-danger"></i> SQL Injection</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check form-switch scan-toggle">
+                                    <input class="form-check-input" type="checkbox" value="xss" id="scanXss" checked>
+                                    <label class="form-check-label" for="scanXss"><i class="fas fa-code text-danger"></i> XSS Scan</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="selectAllScans" checked>
+                            <label class="form-check-label" for="selectAllScans">Select/Deselect All</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Start Scan</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4 class="mt-3">Scanning target... Please wait.</h4>
+            
+            <!-- Add progress log container -->
+            <div id="progressLog" class="progress-log mt-3">
+                <div class="progress-log-content"></div>
+            </div>
+            
+            <div id="scanProgress" class="mt-4">
+                <div class="scan-step" data-step="headers">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security Headers</span>
+                </div>
+                <div class="scan-step" data-step="ssl">
+                    <i class="fas fa-lock"></i>
+                    <span>SSL/TLS</span>
+                </div>
+                <div class="scan-step" data-step="dns">
+                    <i class="fas fa-server"></i>
+                    <span>DNS Information</span>
+                </div>
+                <div class="scan-step" data-step="whois">
+                    <i class="fas fa-info-circle"></i>
+                    <span>WHOIS Information</span>
+                </div>
+                <div class="scan-step" data-step="discovery">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Discovery Files</span>
+                </div>
+                <div class="scan-step" data-step="vuln">
+                    <i class="fas fa-bug"></i>
+                    <span>Vulnerability Analysis</span>
+                </div>
+                <div class="scan-step" data-step="csrf">
+                    <i class="fas fa-shield-virus"></i>
+                    <span>CSRF Check</span>
+                </div>
+                <div class="scan-step" data-step="sql">
+                    <i class="fas fa-database"></i>
+                    <span>SQL Injection</span>
+                </div>
+                <div class="scan-step" data-step="xss">
+                    <i class="fas fa-code"></i>
+                    <span>XSS Scan</span>
+                </div>
+            </div>
+
+            <div id="scanDuration" class="scan-duration"></div>
+            </div>
+
+        <div id="scanResults" class="mt-4" style="display: none;">
+            <!-- Scan Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bullseye"></i> Scan Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Target URL:</strong> <span id="targetUrlResult"></span></p>
+                            <p><strong>Scan Time:</strong> <span id="scanTimestampResult"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Total Findings:</strong> <span id="totalFindingsResult">0</span></p>
+                            <p><strong>Risk Level:</strong> <span id="riskLevelResult" class="badge bg-secondary">Calculating...</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Findings -->
+            <div id="criticalFindings" class="card mb-4" style="display: none;">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Critical Findings</h5>
+                </div>
+                <div class="card-body" id="criticalFindingsBody"></div>
+            </div>
+
+            <!-- Detailed Results -->
+            <div id="detailedResults"></div>
+        </div>
+
+        <!-- Export Section -->
+        <div id="exportSection" class="text-center mt-4" style="display: none;">
+            <button id="exportPdfButton" class="btn btn-secondary">
+                <i class="fas fa-file-pdf"></i> Export Results as PDF
+            </button>
+        </div>
+
+        <!-- Add logging section to HTML -->
+        <div class="card mb-4" id="logSection" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Scan Logs</h5>
+            </div>
+            <div class="card-body">
+                <div id="logContent" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <!-- REMOVE Link to main theme script -->
+    <!-- <script src="{{ url_for('static', filename='script.js') }}"></script> -->
+    <script>
+        let currentScanResults = {}; // Store results globally for export
+
+        // Add helper functions first
+        function clearResults() {
+            const scanResultsDiv = document.getElementById('scanResults');
+            const detailedResultsDiv = document.getElementById('detailedResults');
+            
+            // Reset the results container but maintain its structure
+            if (detailedResultsDiv) {
+                detailedResultsDiv.innerHTML = '';
+            }
+            
+            // Reset summary information
+            document.getElementById('targetUrlResult').textContent = '';
+            document.getElementById('scanTimestampResult').textContent = '';
+            document.getElementById('totalFindingsResult').textContent = '0';
+            document.getElementById('riskLevelResult').textContent = 'Calculating...';
+            document.getElementById('riskLevelResult').className = 'badge bg-secondary';
+            
+            // Hide critical findings section
+            const criticalFindings = document.getElementById('criticalFindings');
+            if (criticalFindings) {
+                criticalFindings.style.display = 'none';
+            }
+            
+            // Hide results container
+            scanResultsDiv.style.display = 'none';
+            
+            // Hide export section
+            document.getElementById('exportSection').style.display = 'none';
+        }
+
+        function clearLogs() {
+            document.getElementById('logContent').innerHTML = '';
+        }
+
+        function debugLog(message) {
+            console.log(`[Debug] ${message}`);
+        }
+
+        function isValidUrl(string) {
+            try {
+                const url = new URL(string);
+                return url.protocol === "http:" || url.protocol === "https:";
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showCustomAlert(message, type = 'error') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <strong>${type === 'error' ? 'Error!' : 'Success!'}</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Remove any existing alerts
+            document.querySelectorAll('.alert').forEach(alert => alert.remove());
+            
+            // Add the new alert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Add result display functions
+        function displayResults(data) {
+            debugLog('Displaying results:', data);
+            
+            if (!data) {
+                showCustomAlert('No scan results received');
+                return;
+            }
+            
+            const scanResultsDiv = document.getElementById('scanResults');
+            const detailedResultsDiv = document.getElementById('detailedResults');
+            const criticalFindingsDiv = document.getElementById('criticalFindings');
+            const criticalFindingsBody = document.getElementById('criticalFindingsBody');
+            
+            // Ensure all required elements exist
+            if (!scanResultsDiv || !detailedResultsDiv || !criticalFindingsDiv || !criticalFindingsBody) {
+                console.error('Required result elements not found');
+                return;
+            }
+            
+            // Clear previous results
+            detailedResultsDiv.innerHTML = '';
+            criticalFindingsBody.innerHTML = '';
+            
+            // Update target info
+            document.getElementById('targetUrlResult').textContent = data.target_url || 'N/A';
+            document.getElementById('scanTimestampResult').textContent = new Date().toLocaleString();
+            
+            // Track findings and risk level
+            let totalFindings = 0;
+            let criticalFindings = [];
+            let riskLevel = 'LOW';
+            
+            // Process each scan type
+            try {
+                Object.entries(data).forEach(([category, results]) => {
+                    if (category === 'target_url') return;
+                    
+                    // Skip if results is undefined or null
+                    if (!results) return;
+                    
+                    // Create result card
+                    const card = createResultCard(category, results);
+                    if (card) {
+                        detailedResultsDiv.appendChild(card);
+                    }
+                    
+                    // Count findings and assess risk
+                    if (results.status === 'success') {
+                        switch(category) {
+                            case 'headers_scan':
+                                if (Array.isArray(results.missing_headers) && results.missing_headers.length > 0) {
+                                    totalFindings += results.missing_headers.length;
+                                    if (results.missing_headers.some(h => h && h.severity === 'high')) {
+                                        criticalFindings.push('Missing critical security headers');
+                                        riskLevel = 'HIGH';
+                                    }
+                                }
+                                break;
+                            case 'ssl_scan':
+                                if (Array.isArray(results.warnings) && results.warnings.length > 0) {
+                                    totalFindings += results.warnings.length;
+                                    criticalFindings.push('SSL/TLS configuration issues detected');
+                                    riskLevel = 'HIGH';
+                                }
+                                break;
+                            case 'vuln_scan':
+                                if (Array.isArray(results.vulnerabilities) && results.vulnerabilities.length > 0) {
+                                    totalFindings += results.vulnerabilities.length;
+                                    if (results.vulnerabilities.some(v => v && v.severity === 'high')) {
+                                        criticalFindings.push('Critical vulnerabilities detected');
+                                        riskLevel = 'HIGH';
+                                    }
+                                }
+                                break;
+                            case 'sql_scan':
+                                if (results.vulnerable === true) {
+                                    totalFindings++;
+                                    criticalFindings.push('SQL Injection vulnerability detected');
+                                    riskLevel = 'HIGH';
+                                }
+                                break;
+                            case 'xss_scan':
+                                if (results.vulnerable === true) {
+                                    totalFindings++;
+                                    criticalFindings.push('Cross-Site Scripting (XSS) vulnerability detected');
+                                    riskLevel = 'HIGH';
+                                }
+                                break;
+                        }
+                    }
+                });
+                
+                // Update summary information
+                document.getElementById('totalFindingsResult').textContent = totalFindings;
+                const riskLevelBadge = document.getElementById('riskLevelResult');
+                riskLevelBadge.textContent = riskLevel;
+                riskLevelBadge.className = `badge bg-${riskLevel.toLowerCase() === 'high' ? 'danger' : 
+                                            riskLevel.toLowerCase() === 'medium' ? 'warning' : 'success'}`;
+                
+                // Display critical findings if any
+                if (criticalFindings.length > 0) {
+                    criticalFindingsBody.innerHTML = `
+                        <ul class="list-group list-group-flush">
+                            ${criticalFindings.map(finding => `
+                                <li class="list-group-item bg-danger-light text-danger">
+                                    <i class="fas fa-exclamation-circle"></i> ${finding}
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                    criticalFindingsDiv.style.display = 'block';
+                } else {
+                    criticalFindingsDiv.style.display = 'none';
+                }
+                
+                // Show results
+                scanResultsDiv.style.display = 'block';
+                document.getElementById('exportSection').style.display = 'block';
+                
+                // Scroll to results
+                scanResultsDiv.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error displaying results:', error);
+                showCustomAlert('Error displaying scan results: ' + error.message);
+            }
+        }
+
+        // Add progress tracking functions
+        let scanStartTime;
+        function updateStepStatus(step, status) {
+            const stepElement = document.querySelector(`.scan-step[data-step="${step}"]`);
+            if (!stepElement) {
+                console.warn(`Step element not found for: ${step}`);
+                return;
+            }
+            
+            stepElement.className = `scan-step ${status}`;
+            const icon = stepElement.querySelector('i');
+            if (icon) {
+                switch (status) {
+                    case 'complete':
+                        icon.className = 'fas fa-check-circle text-success';
+                        break;
+                    case 'in-progress':
+                        icon.className = 'fas fa-spinner fa-spin text-primary';
+                        break;
+                    case 'error':
+                        icon.className = 'fas fa-times-circle text-danger';
+                        break;
+                    default:
+                        icon.className = 'fas fa-circle text-secondary';
+                }
+            }
+        }
+
+        function updateScanDuration() {
+            if (!scanStartTime) return;
+            const duration = Math.floor((Date.now() - scanStartTime) / 1000);
+            document.getElementById('scanDuration').textContent = `Scan Duration: ${duration}s`;
+        }
+
+        // Update the form submission code
+        document.getElementById('scanForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            debugLog('Form submitted');
+            
+            // Clear previous results and logs
+            clearResults();
+            clearLogs();
+            currentScanResults = {}; // Reset global results
+            
+            // Show log section
+            document.getElementById('logSection').style.display = 'block';
+            addLog('Starting scan...', 'info');
+            
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                addLog('Error: Please enter a URL', 'error');
+                showCustomAlert('Please enter a URL');
+                return;
+            }
+            
+            if (!isValidUrl(url)) {
+                addLog('Error: Please enter a valid URL (e.g., https://example.com)', 'error');
+                showCustomAlert('Please enter a valid URL (e.g., https://example.com)');
+                return;
+            }
+            
+            const selectedOptions = document.querySelectorAll('.scan-toggle input[type="checkbox"]:checked');
+            if (selectedOptions.length === 0) {
+                addLog('Error: No scan options selected', 'error');
+                showCustomAlert('Please select at least one scan option');
+                return;
+            }
+            
+            const categories = Array.from(selectedOptions).map(opt => opt.value);
+            debugLog(`URL: ${url}`);
+            debugLog(`Selected categories: ${categories.join(', ')}`);
+            
+            addLog(`Target URL: ${url}`, 'info');
+            addLog(`Selected scans: ${categories.join(', ')}`, 'info');
+            
+            // Show loading indicator and progress
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('scanProgress').style.display = 'grid';
+            document.getElementById('scanResults').style.display = 'none';
+            document.getElementById('exportSection').style.display = 'none'; // Hide export button initially
+            
+            // Initialize all scan steps to default state
+            document.querySelectorAll('.scan-step').forEach(step => {
+                step.className = 'scan-step';
+                const icon = step.querySelector('i');
+                if (icon) {
+                    icon.className = icon.className.split(' ')[0] + ' text-secondary';
+                }
+            });
+            
+            // Set selected scans to "in-progress"
+            categories.forEach(category => {
+                updateStepStatus(category, 'in-progress');
+            });
+            
+            // Start duration timer
+            scanStartTime = Date.now();
+            const durationInterval = setInterval(updateScanDuration, 1000);
+            
+            try {
+                debugLog('Sending scan request...');
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        categories: categories
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                currentScanResults = data; // Store results globally for export
+                debugLog('Received scan results:', data);
+                
+                // Process each scan result
+                if (data.headers_scan) {
+                    addLog('Processing header scan results...', 'info');
+                    updateStepStatus('headers', data.headers_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.headers_scan.status === 'success') {
+                        const presentCount = data.headers_scan.present_headers?.length || 0;
+                        const missingCount = data.headers_scan.missing_headers?.length || 0;
+                        addLog(`Found ${presentCount} security headers present`, 'success');
+                        addLog(`Missing ${missingCount} recommended headers`, 'warning');
+                    } else {
+                        addLog(`Header scan error: ${data.headers_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.ssl_scan) {
+                    addLog('Processing SSL scan results...', 'info');
+                    updateStepStatus('ssl', data.ssl_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.ssl_scan.status === 'success') {
+                        addLog(`SSL certificate valid until ${data.ssl_scan.notAfter}`, 'success');
+                        if (data.ssl_scan.warnings) {
+                            data.ssl_scan.warnings.forEach(warning => addLog(warning, 'warning'));
+                        }
+                    } else {
+                        addLog(`SSL scan error: ${data.ssl_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.dns_scan) {
+                    addLog('Processing DNS scan results...', 'info');
+                    updateStepStatus('dns', data.dns_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.dns_scan.status === 'success') {
+                        addLog(`Found ${data.dns_scan.A_records?.length || 0} A records`, 'info');
+                        addLog(`Found ${data.dns_scan.MX_records?.length || 0} MX records`, 'info');
+                        addLog(`Found ${data.dns_scan.NS_records?.length || 0} NS records`, 'info');
+                    } else {
+                        addLog(`DNS scan error: ${data.dns_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.whois_scan) {
+                    addLog('Processing WHOIS scan results...', 'info');
+                    updateStepStatus('whois', data.whois_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.whois_scan.status === 'success') {
+                        addLog('WHOIS information retrieved successfully', 'success');
+                    } else {
+                        addLog(`WHOIS scan error: ${data.whois_scan.message || 'Unknown error'}`, 'error');
+                    }
+                }
+                
+                if (data.vuln_scan) {
+                    addLog('Processing vulnerability scan results...', 'info');
+                    updateStepStatus('vuln', data.vuln_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.vuln_scan.status === 'success') {
+                        const vulnCount = data.vuln_scan.vulnerabilities?.length || 0;
+                        addLog(`Found ${vulnCount} vulnerabilities`, vulnCount > 0 ? 'warning' : 'success');
+                    } else {
+                        addLog(`Vulnerability scan error: ${data.vuln_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.csrf_scan) {
+                    addLog('Processing CSRF scan results...', 'info');
+                    updateStepStatus('csrf', data.csrf_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.csrf_scan.status === 'success') {
+                        addLog('CSRF scan completed', 'success');
+                    } else {
+                        addLog(`CSRF scan error: ${data.csrf_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.sql_scan) {
+                    addLog('Processing SQL injection scan results...', 'info');
+                    updateStepStatus('sql', data.sql_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.sql_scan.status === 'success') {
+                        addLog('SQL injection scan completed', data.sql_scan.vulnerable ? 'warning' : 'success');
+                    } else {
+                        addLog(`SQL injection scan error: ${data.sql_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.xss_scan) {
+                    addLog('Processing XSS scan results...', 'info');
+                    updateStepStatus('xss', data.xss_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.xss_scan.status === 'success') {
+                        addLog('XSS scan completed', data.xss_scan.vulnerable ? 'warning' : 'success');
+                    } else {
+                        addLog(`XSS scan error: ${data.xss_scan.message}`, 'error');
+                    }
+                }
+                
+                if (data.discovery_scan) {
+                    addLog('Processing discovery files scan results...', 'info');
+                    updateStepStatus('discovery', data.discovery_scan.status === 'success' ? 'complete' : 'error');
+                    if (data.discovery_scan.status === 'success') {
+                        addLog('Discovery files scan completed', 'success');
+                    } else {
+                        addLog(`Discovery files scan error: ${data.discovery_scan.message}`, 'error');
+                    }
+                }
+                
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // Display final results
+                displayResults(data);
+                addLog('Scan completed successfully', 'success');
+                
+            } catch (error) {
+                debugLog(`Error during scan: ${error.message}`);
+                addLog(`Error during scan: ${error.message}`, 'error');
+                showCustomAlert('An error occurred during the scan. Please try again.');
+                document.getElementById('loadingIndicator').style.display = 'none';
+            } finally {
+                clearInterval(durationInterval);
+                updateScanDuration();
+            }
+        });
+
+        // Add select all functionality
+        document.getElementById('selectAllScans').addEventListener('change', function(e) {
+            const isChecked = e.target.checked;
+            document.querySelectorAll('.scan-toggle input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // Update select all when individual options change
+        document.querySelectorAll('.scan-toggle input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const totalCheckboxes = document.querySelectorAll('.scan-toggle input[type="checkbox"]').length;
+                const checkedCheckboxes = document.querySelectorAll('.scan-toggle input[type="checkbox"]:checked').length;
+                document.getElementById('selectAllScans').checked = totalCheckboxes === checkedCheckboxes;
+            });
+        });
+
+        // Add result card creation function
+        function createResultCard(category, results) {
+            debugLog(`Creating result card for ${category}:`, results);
+            
+            if (!results || typeof results !== 'object') {
+                debugLog(`Invalid results for ${category}`);
+                return null;
+            }
+            
+            try {
+                const card = document.createElement('div');
+                card.className = 'card mb-4';
+                
+                let title = '';
+                let icon = '';
+                let content = '';
+                
+                switch(category) {
+                    case 'headers_scan':
+                        title = 'Security Headers';
+                        icon = 'shield-alt';
+                        content = createHeadersContent(results);
+                        break;
+                    case 'ssl_scan':
+                        title = 'SSL/TLS Information';
+                        icon = 'lock';
+                        content = createSSLContent(results);
+                        break;
+                    case 'dns_scan':
+                        title = 'DNS Information';
+                        icon = 'server';
+                        content = createDNSContent(results);
+                        break;
+                    case 'whois_scan':
+                        title = 'WHOIS Information';
+                        icon = 'info-circle';
+                        content = createWhoisContent(results);
+                        break;
+                    case 'vuln_scan':
+                        title = 'Vulnerability Analysis';
+                        icon = 'bug';
+                        content = createVulnContent(results);
+                        break;
+                    case 'csrf_scan':
+                        title = 'CSRF Check';
+                        icon = 'shield-virus';
+                        content = createCSRFContent(results);
+                        break;
+                    case 'sql_scan':
+                        title = 'SQL Injection';
+                        icon = 'database';
+                        content = createSQLContent(results);
+                        break;
+                    case 'xss_scan':
+                        title = 'XSS Analysis';
+                        icon = 'code';
+                        content = createXSSContent(results);
+                        break;
+                    case 'discovery_scan':
+                        title = 'Discovery Files';
+                        icon = 'file-alt';
+                        content = createDiscoveryContent(results);
+                        break;
+                    default:
+                        return null;
+                }
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-${icon}"></i>
+                            ${title}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        ${content}
+                    </div>
+                `;
+                
+                return card;
+            } catch (error) {
+                console.error(`Error creating card for ${category}:`, error);
+                return null;
+            }
+        }
+
+        // Add content creation helper functions
+        function createHeadersContent(results) {
+            if (!results || results.status !== 'success') {
+                return `<div class="alert alert-danger">${results?.message || 'Failed to analyze security headers'}</div>`;
+            }
+            
+            let content = '<div class="headers-grid">';
+            
+            // Present headers
+            if (Array.isArray(results.present_headers)) {
+                results.present_headers.forEach(header => {
+                    content += `
+                        <div class="header-item present">
+                            <strong>${header.name || 'Unknown Header'}</strong>
+                            <div class="header-details">
+                                <p>${header.value || 'No value'}</p>
+                                ${header.description ? `<p class="text-muted">${header.description}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Missing headers
+            if (Array.isArray(results.missing_headers)) {
+                results.missing_headers.forEach(header => {
+                    content += `
+                        <div class="header-item missing">
+                            <strong>${header.name || 'Unknown Header'}</strong>
+                            <div class="header-details">
+                                <p class="text-muted">${header.description || 'This security header is recommended but not present.'}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            content += '</div>';
+            return content;
+        }
+
+        function createSSLContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to analyze SSL/TLS configuration'}</div>`;
+            }
+            
+            return `
+                <div class="ssl-info">
+                    <p><strong>Valid From:</strong> ${results.notBefore}</p>
+                    <p><strong>Valid Until:</strong> ${results.notAfter}</p>
+                    <p><strong>Issuer:</strong> ${results.issuer}</p>
+                    <p><strong>Subject:</strong> ${results.subject}</p>
+                    ${results.warnings && results.warnings.length > 0 ? `
+                        <div class="cipher-issues">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Warnings</h5>
+                            <ul class="list-unstyled">
+                                ${results.warnings.map(warning => `<li class="text-warning"><i class="fas fa-exclamation-circle"></i> ${warning}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createDNSContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to retrieve DNS information'}</div>`;
+            }
+            
+            return `
+                <div class="dns-records">
+                    ${results.A_records.length > 0 ? `
+                        <div class="dns-record-type">
+                            <strong>A Records</strong>
+                            <ul>
+                                ${results.A_records.map(record => `<li>${record}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${results.MX_records.length > 0 ? `
+                        <div class="dns-record-type">
+                            <strong>MX Records</strong>
+                            <ul>
+                                ${results.MX_records.map(record => `<li>${record}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${results.NS_records.length > 0 ? `
+                        <div class="dns-record-type">
+                            <strong>NS Records</strong>
+                            <ul>
+                                ${results.NS_records.map(record => `<li>${record}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createWhoisContent(results) {
+            if (!results || results.status !== 'success') {
+                return `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${results?.message || 'Failed to retrieve WHOIS information. This could be due to rate limiting or access restrictions.'}
+                        <hr>
+                        <small class="text-muted">
+                            Note: Some domain registrars may limit WHOIS queries. Try again later or use a public WHOIS service.
+                        </small>
+                    </div>
+                `;
+            }
+            
+            const whois = results.whois_info || {};
+            
+            // Check if we have any WHOIS data
+            if (!whois || Object.keys(whois).length === 0) {
+                return `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        No WHOIS information available for this domain.
+                    </div>
+                `;
+            }
+
+            // Format dates if they exist
+            const formatDate = (dateStr) => {
+                if (!dateStr) return 'N/A';
+                try {
+                    const date = new Date(dateStr);
+                    return date.toLocaleString();
+                } catch (e) {
+                    return dateStr;
+                }
+            };
+
+            return `
+                <div class="whois-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Domain Information</h6>
+                            <p><span class="whois-label">Domain Name:</span> <span class="whois-value">${whois.domain_name || 'N/A'}</span></p>
+                            <p><span class="whois-label">Registrar:</span> <span class="whois-value">${whois.registrar || 'N/A'}</span></p>
+                            <p><span class="whois-label">Creation Date:</span> <span class="whois-value">${formatDate(whois.creation_date)}</span></p>
+                            <p><span class="whois-label">Expiration Date:</span> <span class="whois-value">${formatDate(whois.expiration_date)}</span></p>
+                            <p><span class="whois-label">Updated Date:</span> <span class="whois-value">${formatDate(whois.updated_date)}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Status Information</h6>
+                            ${whois.status ? `
+                                <div class="whois-status-container">
+                                    ${whois.status.split(',').map(status => `
+                                        <span class="whois-status status-${status.trim().toLowerCase().replace(/\s+/g, '-')}">
+                                            ${status.trim()}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : '<p class="text-muted">No status information available</p>'}
+                        </div>
+                    </div>
+
+                    ${whois.name_servers ? `
+                        <div class="mt-4">
+                            <h6 class="mb-3">Name Servers</h6>
+                            <ul class="list-unstyled">
+                                ${Array.isArray(whois.name_servers) ? 
+                                    whois.name_servers.map(ns => `
+                                        <li><i class="fas fa-server text-muted me-2"></i>${ns}</li>
+                                    `).join('') : 
+                                    `<li>${whois.name_servers}</li>`
+                                }
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${whois.raw ? `
+                        <div class="raw-whois-container mt-4">
+                            <div class="raw-whois-header">
+                                <span class="raw-whois-title">Raw WHOIS Data</span>
+                                <button class="raw-whois-toggle" onclick="toggleRawWhois(this)">Show Raw Data</button>
+                            </div>
+                            <div class="raw-whois-data" style="display: none;">
+                                <pre>${whois.raw}</pre>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createVulnContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to analyze page vulnerabilities'}</div>`;
+            }
+            
+            if (!results.vulnerabilities || results.vulnerabilities.length === 0) {
+                return '<div class="alert alert-success">No common page vulnerabilities found</div>';
+            }
+            
+            return `
+                <div class="vulnerabilities">
+                    ${results.vulnerabilities.map(vuln => `
+                        <div class="vulnerability-item ${vuln.severity.toLowerCase()}">
+                            <strong>${vuln.title}</strong>
+                            <p>${vuln.description}</p>
+                            ${vuln.evidence ? `<pre><code>${vuln.evidence}</code></pre>` : ''}
+                            <span class="severity-badge">${vuln.severity}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createCSRFContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to check for CSRF vulnerabilities'}</div>`;
+            }
+            
+            return `
+                <div class="vulnerabilities">
+                    ${results.forms.map(form => `
+                        <div class="vulnerability-item ${form.has_token ? 'low' : 'high'}">
+                            <strong>${form.has_token ? 'CSRF Protection Present' : 'Missing CSRF Protection'}</strong>
+                            <p>${form.has_token ? 
+                                'This form includes CSRF protection.' : 
+                                'This form does not include CSRF protection and may be vulnerable to cross-site request forgery attacks.'}
+                            </p>
+                            <pre><code>${form.html}</code></pre>
+                            <span class="severity-badge">${form.has_token ? 'LOW' : 'HIGH'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createSQLContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to test for SQL injection vulnerabilities'}</div>`;
+            }
+            
+            return `
+                <div class="${results.vulnerable ? 'sql-vulnerability' : 'sql-safe'}">
+                    <strong>${results.vulnerable ? 'SQL Injection Vulnerability Detected!' : 'No SQL Injection Vulnerabilities Found'}</strong>
+                    <p>${results.details || 'The application was tested for common SQL injection vulnerabilities.'}</p>
+                </div>
+                ${results.tests ? `
+                    <div class="sql-details">
+                        <h5>Test Details</h5>
+                        ${results.tests.map(test => `
+                            <div class="sql-detail-item">
+                                <span class="sql-detail-type">${test.type}</span>
+                                <p><strong>Payload:</strong> <span class="sql-detail-payload">${test.payload}</span></p>
+                                <p><strong>Result:</strong> ${test.result}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function createXSSContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to test for XSS vulnerabilities'}</div>`;
+            }
+            
+            return `
+                <div class="vulnerabilities">
+                    ${results.tests.map(test => `
+                        <div class="vulnerability-item ${test.vulnerable ? 'high' : 'low'}">
+                            <strong>${test.type} XSS Test</strong>
+                            <p>${test.description}</p>
+                            ${test.payload ? `<pre><code>${test.payload}</code></pre>` : ''}
+                            <span class="severity-badge">${test.vulnerable ? 'HIGH' : 'LOW'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createDiscoveryContent(results) {
+            if (results.status !== 'success') {
+                return `<div class="alert alert-danger">${results.message || 'Failed to analyze discovery files'}</div>`;
+            }
+            
+            return `
+                <div class="vulnerabilities">
+                    ${results.files.map(file => `
+                        <div class="vulnerability-item ${file.severity.toLowerCase()}">
+                            <strong>${file.name}</strong>
+                            <p>${file.description}</p>
+                            ${file.content ? `<pre><code>${file.content}</code></pre>` : ''}
+                            <span class="severity-badge">${file.severity}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Add raw WHOIS toggle function
+        function toggleRawWhois(button) {
+            const container = button.closest('.raw-whois-container');
+            const dataDiv = container.querySelector('.raw-whois-data');
+            const isHidden = dataDiv.style.display === 'none';
+            
+            dataDiv.style.display = isHidden ? 'block' : 'none';
+            button.textContent = isHidden ? 'Hide Raw Data' : 'Show Raw Data';
+        }
+
+        // Add logging functions
+        function addLogEntry(message, type = 'info') {
+            const logContent = document.querySelector('.progress-log-content');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span>`;
+            logContent.appendChild(logEntry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        // Add PDF Export Button Event Listener
+        document.getElementById('exportPdfButton').addEventListener('click', async function() {
+            if (!currentScanResults || Object.keys(currentScanResults).length === 0) {
+                showCustomAlert('No scan results available to export.');
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+
+            try {
+                const response = await fetch('/web-scanner/export-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentScanResults)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to generate PDF: ${response.statusText}`);
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                
+                // Extract filename from Content-Disposition header
+                let filename = 'scan_report.pdf';
+                const disposition = response.headers.get('Content-Disposition');
+                if (disposition && disposition.indexOf('attachment') !== -1) {
+                    const filenameRegex = /filename[^;=\n]*=((['"])(?<filename>.*?)\2|(?<filename_fallback>[^;\n]*))/;
+                    const matches = filenameRegex.exec(disposition);
+                    if (matches && matches.groups) {
+                        filename = matches.groups.filename || matches.groups.filename_fallback;
+                    }
+                }
+                
+                a.href = downloadUrl;
+                a.download = filename; // Use extracted or default filename
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+
+            } catch (error) {
+                console.error('PDF Export Error:', error);
+                showCustomAlert(`Failed to export PDF: ${error.message}`, 'error');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-file-pdf"></i> Export Results as PDF';
+            }
+        });
+    </script>
+</body>
+</html>
