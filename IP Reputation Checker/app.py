@@ -10,10 +10,7 @@ app = Flask(__name__)
 
 # List of API keys (modify accordingly)
 API_KEYS = [
-    "64d7d06aa998e956f477df17e005153a3c4ffd4affae3eb036afc21bd65af507",
-    "e3e42d3ebb396d5c2f7f505ab1885bf7820474737caf6fba602eee27cdcecaa8",
-    "1a628d053b9cdb10169de5bb0fb6f1f83e05d972788a43763c54ceb22fbce659",
-    "ddf12f573c2891adcaab881ddb75079bf3aa3141c4c9eb165794e523167fc071"
+    "e3e42d3ebb396d5c2f7f505ab1885bf7820474737caf6fba602eee27cdcecaa8"
 ]  # Replace with actual API keys # Replace with actual API keys
 
 # Dictionary to track API usage per key
