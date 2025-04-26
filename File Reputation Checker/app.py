@@ -3,23 +3,40 @@ import hashlib
 import requests
 import pandas as pd
 from flask import Flask, request, jsonify, render_template, send_file
+from datetime import datetime
 
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# List of VirusTotal API keys (rotates keys when limits are reached)
+# List of VirusTotal API keys (add multiple keys here)
 API_KEYS = [
-"64d7d06aa998e956f477df17e005153a3c4ffd4affae3eb036afc21bd65af507"
+    "ddf12f573c2891adcaab881ddb75079bf3aa3141c4c9eb165794e523167fc071",
+    "1a628d053b9cdb10169de5bb0fb6f1f83e05d972788a43763c54ceb22fbce659",
+    "8d6b76c60f21fdf378efc21d390e3615699b4cff3d59d8ccf2f1a4c8dcdfe680",
+    "64d7d06aa998e956f477df17e005153a3c4ffd4affae3eb036afc21bd65af507"
 ]
 
-# Dictionary to track API usage per key
-api_usage = {key: 0 for key in API_KEYS}
+# Dictionary to track API usage per key with timestamp
+api_usage = {
+    key: {
+        'count': 0,
+        'last_reset': datetime.now(),
+        'daily_limit': 500,
+        'rate_limit_reset': None,
+        'is_valid': None,
+        'validation_message': None,
+        'last_request_time': None,
+        'min_request_interval': 30,  # Increased to 30 seconds
+        'consecutive_failures': 0,
+        'last_failure_time': None
+    } for key in API_KEYS
+}
 
 # Function to get an available API key
 def get_available_api_key():
-    for key, count in api_usage.items():
-        if count < 500:
+    for key, usage in api_usage.items():
+        if usage['count'] < usage['daily_limit']:
             return key
     return None
 
@@ -55,7 +72,7 @@ def check_hash(hash_value):
         vendor_detections = [engine for engine, result in data.get("last_analysis_results", {}).items() if result["category"] == "malicious"]
         detections = ", ".join(vendor_detections) if vendor_detections else "No detections"
 
-        api_usage[api_key] += 1
+        api_usage[api_key]['count'] += 1
 
         return {
             "hash": hash_value,

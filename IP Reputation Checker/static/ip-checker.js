@@ -42,7 +42,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (results.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = '<td colspan="5">No results found</td>';
+            row.innerHTML = `
+                <td colspan="5" class="no-results-message">
+                    <div class="no-results-content">
+                        <i class="fas fa-search"></i>
+                        <p>No results found for your query</p>
+                        <p class="no-results-hint">Try checking another IP address or verify your VirusTotal API key</p>
+                    </div>
+                </td>
+            `;
             resultsTable.appendChild(row);
         } else {
             for (let i = 0; i < results.length; i++) {

@@ -5,21 +5,38 @@ import pandas as pd
 import re
 import time
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-# List of API keys (modify accordingly)
+# List of VirusTotal API keys (add multiple keys here)
 API_KEYS = [
+    "ddf12f573c2891adcaab881ddb75079bf3aa3141c4c9eb165794e523167fc071",
+    "1a628d053b9cdb10169de5bb0fb6f1f83e05d972788a43763c54ceb22fbce659",
+    "8d6b76c60f21fdf378efc21d390e3615699b4cff3d59d8ccf2f1a4c8dcdfe680",
     "64d7d06aa998e956f477df17e005153a3c4ffd4affae3eb036afc21bd65af507"
-]  # Replace with actual API keys
+]
 
-# Dictionary to track API usage per key
-api_usage = {key: 0 for key in API_KEYS}
+# Dictionary to track API usage per key with timestamp
+api_usage = {
+    key: {
+        'count': 0,
+        'last_reset': datetime.now(),
+        'daily_limit': 500,
+        'rate_limit_reset': None,
+        'is_valid': None,
+        'validation_message': None,
+        'last_request_time': None,
+        'min_request_interval': 30,  # Increased to 30 seconds
+        'consecutive_failures': 0,
+        'last_failure_time': None
+    } for key in API_KEYS
+}
 
 # Function to get available API key
 def get_available_api_key():
-    for key, count in api_usage.items():
-        if count < 500:  # Daily limit per key
+    for key, usage in api_usage.items():
+        if usage['count'] < usage['daily_limit']:
             return key
     return None
 
@@ -48,7 +65,7 @@ def check_ip(ip):
         if response.status_code == 200:
             data = response.json().get('data', {})
             attributes = data.get('attributes', {})
-            api_usage[api_key] += 1
+            api_usage[api_key]['count'] += 1
             return {
                 "ip": ip,
                 "malicious": attributes.get('last_analysis_stats', {}).get('malicious', 0),
@@ -102,24 +119,32 @@ def index():
 def process_ips():
     try:
         input_text = request.form.get('input_text', '').strip()
+        print(f"Received input: {input_text}")
+        
         if not input_text:
             return jsonify({"error": "No input provided", "results": []}), 400
 
         ip_addresses = extract_ips(input_text)
+        print(f"Extracted IPs: {ip_addresses}")
+        
         if not ip_addresses:
             return jsonify({"error": "No valid IP addresses found", "results": []}), 400
 
         results = []
         for ip in ip_addresses:
+            print(f"Checking IP: {ip}")
             result = check_ip(ip)
+            print(f"Result for {ip}: {result}")
             results.append(result)
             time.sleep(1)  # Rate limiting
 
         # Save results to Excel
         df = pd.DataFrame(results)
         df.to_excel('ip_scan_results.xlsx', index=False)
-
-        return jsonify({"message": "Success", "results": results})
+        
+        response_data = {"message": "Success", "results": results}
+        print(f"Sending response: {response_data}")
+        return jsonify(response_data)
 
     except Exception as e:
         return jsonify({"error": str(e), "results": []}), 500
@@ -169,4 +194,4 @@ def download_file():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5000, host='0.0.0.0')
