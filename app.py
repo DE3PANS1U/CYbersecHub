@@ -15,6 +15,7 @@ import math
 from collections import Counter
 import urllib.parse
 import html
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
@@ -23,17 +24,33 @@ app.secret_key = os.urandom(24)  # Set a secret key for session management
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# VirusTotal API keys
+# List of VirusTotal API keys (add multiple keys here)
 API_KEYS = [
+    "ddf12f573c2891adcaab881ddb75079bf3aa3141c4c9eb165794e523167fc071",
+    "1a628d053b9cdb10169de5bb0fb6f1f83e05d972788a43763c54ceb22fbce659",
+    "8d6b76c60f21fdf378efc21d390e3615699b4cff3d59d8ccf2f1a4c8dcdfe680",
     "64d7d06aa998e956f477df17e005153a3c4ffd4affae3eb036afc21bd65af507"
 ]
 
-# Dictionary to track API usage
-api_usage = {key: 0 for key in API_KEYS}
+# Dictionary to track API usage per key with timestamp
+api_usage = {
+    key: {
+        'count': 0,
+        'last_reset': datetime.now(),
+        'daily_limit': 500,
+        'rate_limit_reset': None,
+        'is_valid': None,
+        'validation_message': None,
+        'last_request_time': None,
+        'min_request_interval': 30,  # Increased to 30 seconds
+        'consecutive_failures': 0,
+        'last_failure_time': None
+    } for key in API_KEYS
+}
 
 def get_available_api_key():
     for key in API_KEYS:
-        if api_usage[key] < 500:  # Daily limit per key
+        if api_usage[key]['count'] < api_usage[key]['daily_limit']:  # Daily limit per key
             return key
     return None
 
@@ -49,7 +66,7 @@ def check_hash(hash_value):
     
     try:
         response = requests.get(url, headers=headers)
-        api_usage[api_key] += 1
+        api_usage[api_key]['count'] += 1
         
         if response.status_code == 200:
             data = response.json()
@@ -80,7 +97,7 @@ def check_ip(ip_address):
     
     try:
         response = requests.get(url, headers=headers)
-        api_usage[api_key] += 1
+        api_usage[api_key]['count'] += 1
         
         if response.status_code == 200:
             data = response.json()
@@ -178,7 +195,7 @@ def check_url(url):
                 attributes = data.get("attributes", {})
                 stats = attributes.get("stats", {})
                 
-                api_usage[api_key] += 1
+                api_usage[api_key]['count'] += 1
                 
                 # Extract more detailed information
                 malicious = stats.get("malicious", 0)
@@ -398,7 +415,8 @@ def index():
         {'name': 'IP Reputation Checker', 'url': '/ip-checker', 'icon': 'fas fa-network-wired'},
         {'name': 'File Reputation Checker', 'url': '/file-checker', 'icon': 'fas fa-file'},
         {'name': 'URL Reputation Checker', 'url': '/url-checker', 'icon': 'fas fa-link'},
-        {'name': 'OWASP Risk Rating Calculator', 'url': '/owasp-calculator', 'icon': 'fas fa-shield-alt'}
+        {'name': 'OWASP Risk Rating Calculator', 'url': '/owasp-calculator', 'icon': 'fas fa-shield-alt'},
+        {'name': 'Log Analyzer', 'url': '/log-analyzer', 'icon': 'fas fa-file-alt'}
     ])
 
 @app.route('/styles.css')
@@ -924,6 +942,10 @@ def owasp_calculator():
         }
     }
     return render_template('owasp/index.html', chart_config=chart_config)
+
+@app.route('/log-analyzer')
+def log_analyzer():
+    return render_template('log-analyzer.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 
