@@ -19,6 +19,7 @@ from datetime import datetime
 import sys
 sys.path.append('threatintelligenceplatform')
 from threatintelligenceplatform.app import app as threat_app
+from threatintelligenceplatform.threat_intelligence import threat_bp
 import platform
 import psutil
 import socket
@@ -28,6 +29,9 @@ import whois
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Set a secret key for session management
+
+# Register the threat intelligence blueprint
+app.register_blueprint(threat_bp)
 
 # Create uploads directory if it doesn't exist
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -424,14 +428,18 @@ def cyberchef_bake():
 
 @app.route('/')
 def index():
-    return render_template('index.html', tools=[
-        {'name': 'Hash Reputation Checker', 'url': '/hash-checker', 'icon': 'fas fa-hashtag'},
-        {'name': 'IP Reputation Checker', 'url': '/ip-checker', 'icon': 'fas fa-network-wired'},
-        {'name': 'File Reputation Checker', 'url': '/file-checker', 'icon': 'fas fa-file'},
-        {'name': 'URL Reputation Checker', 'url': '/url-checker', 'icon': 'fas fa-link'},
-        {'name': 'OWASP Risk Rating Calculator', 'url': '/owasp-calculator', 'icon': 'fas fa-shield-alt'},
-        {'name': 'Log Analyzer', 'url': '/log-analyzer', 'icon': 'fas fa-file-alt'}
-    ])
+    return render_template('index.html', 
+                         tools=[
+                             {'name': 'Hash Checker', 'url': '/hash-checker'},
+                             {'name': 'IP Checker', 'url': '/ip-checker'},
+                             {'name': 'File Checker', 'url': '/file-checker'},
+                             {'name': 'URL Checker', 'url': '/url-checker'},
+                             {'name': 'CyberChef', 'url': '/cyberchef'},
+                             {'name': 'OWASP Calculator', 'url': '/owasp-calculator'},
+                             {'name': 'Log Analyzer', 'url': '/log-analyzer'},
+                             {'name': 'Threat Intelligence', 'url': '/threat-intelligence'},
+                             {'name': 'Cybersecurity Toolkit', 'url': '/cybersecurity-toolkit'}
+                         ])
 
 @app.route('/styles.css')
 def serve_css():

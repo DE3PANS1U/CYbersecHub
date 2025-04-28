@@ -155,3 +155,103 @@ function formatReputationV2(data) {
     }
     return html;
 }
+
+// --- OTX API Explorer AJAX ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Search Pulses
+    const searchForm = document.getElementById('otx-search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('otx-search-query').value;
+            fetch(`/otx/search/pulses?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('otx-search-results').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                });
+        });
+    }
+    // Pulse Details
+    const pulseForm = document.getElementById('otx-pulse-form');
+    if (pulseForm) {
+        pulseForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pulseId = document.getElementById('otx-pulse-id').value;
+            fetch(`/otx/pulse/${encodeURIComponent(pulseId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('otx-pulse-details').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                });
+        });
+    }
+    // User Info
+    const userForm = document.getElementById('otx-user-form');
+    if (userForm) {
+        userForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('otx-username').value;
+            fetch(`/otx/user/${encodeURIComponent(username)}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('otx-user-info').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                });
+        });
+    }
+    // Show indicators for a pulse in the live feed
+    document.querySelectorAll('.show-indicators').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pulseId = this.getAttribute('data-pulse-id');
+            const row = document.getElementById('indicators-' + pulseId);
+            const detailsDiv = row.querySelector('.indicator-details');
+            if (row.style.display === 'none') {
+                detailsDiv.innerHTML = '<em>Loading indicators...</em>';
+                row.style.display = '';
+                fetch(`/otx/pulse/${encodeURIComponent(pulseId)}/indicators`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.results && data.results.length > 0) {
+                            let html = '<ul class="indicator-list">';
+                            data.results.forEach(ind => {
+                                html += `<li><strong>${ind.type}:</strong> ${ind.indicator}</li>`;
+                            });
+                            html += '</ul>';
+                            detailsDiv.innerHTML = html;
+                        } else {
+                            detailsDiv.innerHTML = '<em>No indicators found for this pulse.</em>';
+                        }
+                    })
+                    .catch(() => {
+                        detailsDiv.innerHTML = '<em>Error loading indicators.</em>';
+                    });
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    // Fetch and display ThreatFox IOCs
+    fetch('/threatfox/recent-iocs')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('threatfox-iocs');
+            if (data.data && data.data.length > 0) {
+                let html = '<table class="otx-feed-table"><thead><tr><th>IOC</th><th>Type</th><th>Malware</th><th>First Seen</th><th>Reference</th></tr></thead><tbody>';
+                data.data.slice(0, 10).forEach(ioc => {
+                    html += `<tr>
+                        <td>${ioc.ioc}</td>
+                        <td>${ioc.ioc_type_desc}</td>
+                        <td>${ioc.malware_printable || ''}</td>
+                        <td>${ioc.first_seen}</td>
+                        <td>${ioc.reference ? `<a href="${ioc.reference}" target="_blank">Link</a>` : ''}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<em>No recent IOCs found.</em>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('threatfox-iocs').innerHTML = '<em>Error loading ThreatFox IOCs.</em>';
+        });
+});

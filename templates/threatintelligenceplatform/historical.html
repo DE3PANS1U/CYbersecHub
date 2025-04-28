@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Threat Intelligence - Threat Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='threatintelligenceplatform/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-history"></i> Historical Threat Intelligence</h1>
+        <div class="back-link">
+            <a href="{{ url_for('threat_intelligence.index') }}"><i class="fas fa-arrow-left"></i> Back to Analysis</a>
+        </div>
+        <div class="historical-data-container">
+            <!-- OTX Pulses Section -->
+            <div class="historical-section">
+                <h2><i class="fas fa-broadcast-tower"></i> AlienVault OTX Pulses</h2>
+                {% if data.otx_pulses and data.otx_pulses.results %}
+                    <div class="pulses-container">
+                        {% for pulse in data.otx_pulses.results %}
+                            <div class="pulse-card">
+                                <div class="pulse-header">
+                                    <h3>{{ pulse.name }}</h3>
+                                    <span class="pulse-date">{{ pulse.created }}</span>
+                                </div>
+                                <div class="pulse-content">
+                                    <p>{{ pulse.description }}</p>
+                                    <div class="pulse-tags">
+                                        {% for tag in pulse.tags %}
+                                            <span class="tag">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="pulse-stats">
+                                        <span><i class="fas fa-eye"></i> {{ pulse.references|length }} References</span>
+                                        <span><i class="fas fa-indicator"></i> {{ pulse.indicators|length }} Indicators</span>
+                                    </div>
+                                </div>
+                                <div class="pulse-footer">
+                                    <span class="author"><i class="fas fa-user"></i> {{ pulse.author_name }}</span>
+                                    <a href="{{ pulse.id }}" class="details-link">View Details</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif data.otx_pulses and data.otx_pulses.error %}
+                    <div class="error-message">
+                        <p>Unable to fetch OTX historical data.</p>
+                        <p class="error-details">{{ data.otx_pulses.error }}</p>
+                    </div>
+                {% else %}
+                    <div class="error-message">
+                        <p>No OTX historical data available for the selected period.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <!-- ThreatFox IOCs Section -->
+            <div class="historical-section">
+                <h2><i class="fas fa-shield-alt"></i> ThreatFox IOCs</h2>
+                {% if data.threatfox_iocs and data.threatfox_iocs.data %}
+                    <div class="iocs-container">
+                        {% for ioc in data.threatfox_iocs.data %}
+                            <div class="ioc-card">
+                                <div class="ioc-header">
+                                    <h3>{{ ioc.ioc_value }}</h3>
+                                    <span class="ioc-type">{{ ioc.ioc_type }}</span>
+                                </div>
+                                <div class="ioc-content">
+                                    <p><strong>Threat Type:</strong> {{ ioc.threat_type }}</p>
+                                    <p><strong>Malware:</strong> {{ ioc.malware }}</p>
+                                    <p><strong>First Seen:</strong> {{ ioc.first_seen }}</p>
+                                    <p><strong>Last Seen:</strong> {{ ioc.last_seen }}</p>
+                                </div>
+                                <div class="ioc-footer">
+                                    <span class="confidence">
+                                        <i class="fas fa-chart-line"></i> Confidence: {{ ioc.confidence_level }}
+                                    </span>
+                                    {% if ioc.reference %}
+                                        <a href="{{ ioc.reference }}" class="details-link" target="_blank">View Reference</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif data.threatfox_iocs and data.threatfox_iocs.error %}
+                    <div class="error-message">
+                        <p>Unable to fetch ThreatFox historical data.</p>
+                        <p class="error-details">{{ data.threatfox_iocs.error }}</p>
+                    </div>
+                {% else %}
+                    <div class="error-message">
+                        <p>No ThreatFox historical data available for the selected period.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-refresh the data every 5 minutes
+            setInterval(function() {
+                window.location.reload();
+            }, 300000);
+        });
+    </script>
+</body>
+</html> 

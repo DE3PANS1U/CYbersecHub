@@ -11,23 +11,28 @@
 <body>
     <div class="container">
         <h1>Threat Intelligence Platform Analysis</h1>
-        <form method="POST">
+        <div class="nav-links" style="margin-bottom: 24px;">
+            <a href="{{ url_for('threat_intelligence.otx_live_feed') }}" class="details-link"><i class="fas fa-broadcast-tower"></i> OTX Live Feed</a> |
+            <a href="{{ url_for('threat_intelligence.threatfox_recent_iocs') }}" class="details-link"><i class="fas fa-shield-alt"></i> ThreatFox Recent IOCs</a> |
+            <a href="{{ url_for('threat_intelligence.historical_data') }}" class="details-link"><i class="fas fa-history"></i> Historical Data</a>
+        </div>
+        <!-- Domain Analysis Form -->
+        <form method="POST" style="margin-bottom: 24px;">
             <label for="domainName">Domain Name:</label>
-            <input type="text" id="domainName" name="domainName" required>
+            <input type="text" id="domainName" name="domainName" placeholder="e.g. example.com">
             <button type="submit"><i class="fas fa-search"></i> Analyze</button>
         </form>
 
+        <!-- Domain Analysis Results -->
         {% if domain %}
             <h2>Analysis for: {{ domain }}</h2>
-
-
             <section class="card-section" id="security-card">
                 <div class="card-header"><span class="toggle-icon"><i class="fas fa-chevron-down"></i></span><i class="fas fa-shield-alt"></i> Security Posture</div>
                 <div class="card-body">
                     <h4><i class="fas fa-certificate"></i> SSL Certificate</h4>
                     <div id="ssl-chain-output">
                         {% if ssl_chain and not ssl_chain.error %}
-                            <script>document.addEventListener('DOMContentLoaded', () => {
+                            <script>document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('ssl-chain-output').innerHTML = formatSSLChain({{ ssl_chain|tojson|safe }});
                             });</script>
                         {% elif ssl_chain.error %}<p class="error">{{ ssl_chain.error }}</p>{% else %}<p>No SSL certificate chain data available.</p>{% endif %}
@@ -35,7 +40,7 @@
                     <h4><i class="fas fa-cog"></i> SSL Configuration</h4>
                     <div id="ssl-config-output">
                         {% if ssl_config and not ssl_config.error %}
-                            <script>document.addEventListener('DOMContentLoaded', () => {
+                            <script>document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('ssl-config-output').innerHTML = formatSSLConfig({{ ssl_config|tojson|safe }});
                             });</script>
                         {% elif ssl_config.error %}<p class="error">{{ ssl_config.error }}</p>{% else %}<p>No SSL configuration data available.</p>{% endif %}
@@ -43,21 +48,20 @@
                     <h4><i class="fas fa-virus"></i> Malware Check</h4>
                     <div id="malware-check-output">
                         {% if malware_check and not malware_check.error %}
-                            <script>document.addEventListener('DOMContentLoaded', () => {
+                            <script>document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('malware-check-output').innerHTML = formatMalwareCheck({{ malware_check|tojson|safe }});
                             });</script>
                         {% elif malware_check.error %}<p class="error">{{ malware_check.error }}</p>{% else %}<p>No malware check data available.</p>{% endif %}
                     </div>
                 </div>
             </section>
-
             <section class="card-section" id="reputation-card">
                 <div class="card-header"><span class="toggle-icon"><i class="fas fa-chevron-down"></i></span><i class="fas fa-chart-bar"></i> Domain Reputation</div>
                 <div class="card-body">
                     <h4>Version 1</h4>
                     <div id="reputation-v1-output">
                         {% if reputation_v1 and not reputation_v1.error %}
-                            <script>document.addEventListener('DOMContentLoaded', () => {
+                            <script>document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('reputation-v1-output').innerHTML = formatReputationV1({{ reputation_v1|tojson|safe }});
                             });</script>
                         {% elif reputation_v1.error %}<p class="error">{{ reputation_v1.error }}</p>{% else %}<p>No domain reputation v1 data available.</p>{% endif %}
@@ -65,7 +69,7 @@
                     <h4>Version 2</h4>
                     <div id="reputation-v2-output">
                         {% if reputation_v2 and not reputation_v2.error %}
-                            <script>document.addEventListener('DOMContentLoaded', () => {
+                            <script>document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('reputation-v2-output').innerHTML = formatReputationV2({{ reputation_v2|tojson|safe }});
                             });</script>
                         {% elif reputation_v2.error %}<p class="error">{{ reputation_v2.error }}</p>{% else %}<p>No domain reputation v2 data available.</p>{% endif %}
@@ -74,12 +78,11 @@
             </section>
         {% endif %}
     </div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
             const toggleIcons = document.querySelectorAll('.toggle-icon');
-            toggleIcons.forEach(icon => {
-                icon.addEventListener('click', () => {
+            toggleIcons.forEach(function(icon) {
+                icon.addEventListener('click', function() {
                     const cardBody = icon.parentNode.parentNode.querySelector('.card-body');
                     cardBody.classList.toggle('hidden');
                     icon.querySelector('i').classList.toggle('fa-chevron-down');

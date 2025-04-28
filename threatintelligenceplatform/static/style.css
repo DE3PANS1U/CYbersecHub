@@ -331,3 +331,69 @@ button[type="submit"]:hover {
     padding-bottom: 15px;
     border-bottom: 1px solid #eee;
 }
+
+/* --- OTX API Explorer Styles --- */
+.otx-explorer {
+    display: flex;
+    gap: 2rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+.explorer-section {
+    background: #f7f9fb;
+    border: 1px solid #e3e7ee;
+    border-radius: 8px;
+    padding: 1.5rem;
+    min-width: 280px;
+    flex: 1 1 300px;
+    box-shadow: 0 2px 8px #0001;
+}
+.explorer-section h3 {
+    color: #27ae60;
+    margin-bottom: 1rem;
+}
+.explorer-section form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.explorer-section input[type="text"] {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.explorer-section button {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.explorer-section button:hover {
+    background: #219150;
+}
+.explorer-section pre {
+    background: #222;
+    color: #fff;
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 0.95em;
+    overflow-x: auto;
+}
+
+.indicator-row {
+    background: #f8fafd;
+}
+.indicator-list {
+    list-style-type: disc;
+    margin: 0 0 0 1.5em;
+    padding: 0;
+    color: #222;
+}
+.indicator-list li {
+    margin-bottom: 4px;
+    font-size: 0.98em;
+}

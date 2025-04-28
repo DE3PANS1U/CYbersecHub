@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreatFox Recent IOCs - Threat Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='threatintelligenceplatform/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-shield-alt"></i> ThreatFox Recent IOCs</h1>
+        <div class="back-link">
+            <a href="{{ url_for('threat_intelligence.index') }}"><i class="fas fa-arrow-left"></i> Back to Analysis</a>
+        </div>
+        {% if iocs and iocs.data %}
+            <div class="iocs-container">
+                {% for ioc in iocs.data %}
+                    <div class="ioc-card">
+                        <div class="ioc-header">
+                            <h3>{{ ioc.ioc_value }}</h3>
+                            <span class="ioc-type">{{ ioc.ioc_type }}</span>
+                        </div>
+                        <div class="ioc-content">
+                            <p><strong>Threat Type:</strong> {{ ioc.threat_type }}</p>
+                            <p><strong>Malware:</strong> {{ ioc.malware }}</p>
+                            <p><strong>First Seen:</strong> {{ ioc.first_seen }}</p>
+                            <p><strong>Last Seen:</strong> {{ ioc.last_seen }}</p>
+                        </div>
+                        <div class="ioc-footer">
+                            <span class="confidence">
+                                <i class="fas fa-chart-line"></i> Confidence: {{ ioc.confidence_level }}
+                            </span>
+                            {% if ioc.reference %}
+                                <a href="{{ ioc.reference }}" class="details-link" target="_blank">View Reference</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="error-message">
+                <p>No recent IOCs found or unable to fetch data.</p>
+                {% if iocs and iocs.error %}
+                    <p class="error-details">{{ iocs.error }}</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html> 

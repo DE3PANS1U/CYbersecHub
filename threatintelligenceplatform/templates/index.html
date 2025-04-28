@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Threat Intelligence Platform Analysis</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='threatintelligenceplatform/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="{{ url_for('static', filename='threatintelligenceplatform/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </head>
 <body>
     <div class="container">
@@ -16,6 +16,41 @@
             <input type="text" id="domainName" name="domainName" required>
             <button type="submit"><i class="fas fa-search"></i> Analyze</button>
         </form>
+
+        <!-- OTX Live Feed Table -->
+        <h2 style="margin-top:2rem;color:#3498db;"><i class="fas fa-bolt"></i> AlienVault OTX Live Feed</h2>
+        {% if otx_data.error %}
+            <div class="error">Error: {{ otx_data.error }}</div>
+        {% elif otx_data.results %}
+            <table class="otx-feed-table">
+                <thead>
+                    <tr>
+                        <th>PULSE NAME</th>
+                        <th>AUTHOR</th>
+                        <th>CREATED</th>
+                        <th>INDICATORS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for pulse in otx_data.results %}
+                    <tr>
+                        <td class="pulse-title"><a href="https://otx.alienvault.com/pulse/{{ pulse.id }}" target="_blank" rel="noopener noreferrer">{{ pulse.name }}</a></td>
+                        <td>{{ pulse.author_name }}</td>
+                        <td>{{ pulse.created | default('N/A') }}</td>
+                        <td class="indicators"><a href="#" class="show-indicators" data-pulse-id="{{ pulse.id }}">{{ pulse.indicator_count }}</a></td>
+                    </tr>
+                    <tr class="indicator-row" id="indicators-{{ pulse.id }}" style="display:none;">
+                        <td colspan="4"><div class="indicator-details"></div></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div>No live feed data available.</div>
+        {% endif %}
+
+        <h2 style="margin-top:2rem;color:#e67e22;"><i class="fas fa-bug"></i> ThreatFox Recent IOCs</h2>
+        <div id="threatfox-iocs"><em>Loading...</em></div>
 
         {% if domain %}
             <h2>Analysis for: {{ domain }}</h2>
@@ -88,5 +123,33 @@
             });
         });
     </script>
+
+    <style>
+    .otx-feed-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+    .otx-feed-table th {
+        background: #3498db;
+        color: #fff;
+        text-align: left;
+        padding: 0.75rem 1rem;
+    }
+    .otx-feed-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    .otx-feed-table tr:hover {
+        background: #f1f7ff;
+    }
+    .pulse-title {
+        font-weight: bold;
+        color: #222;
+    }
+    .indicators {
+        color: #888;
+    }
+    </style>
 </body>
 </html>

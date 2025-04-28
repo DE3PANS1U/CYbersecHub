@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AlienVault OTX Live Feed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8f9fa; color: #222; }
+        .container { max-width: 1000px; margin: 2rem auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 2rem; }
+        h1 { color: #3498db; margin-bottom: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid #eee; }
+        th { background: #3498db; color: #fff; text-align: left; }
+        tr:hover { background: #f1f7ff; }
+        .error { color: #e74c3c; font-weight: bold; margin: 1rem 0; }
+        .pulse-title { font-weight: bold; color: #222; }
+        .indicators { color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-bolt"></i> AlienVault OTX Live Feed</h1>
+        {% if data.error %}
+            <div class="error">Error: {{ data.error }}</div>
+        {% elif data.results %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pulse Name</th>
+                        <th>Author</th>
+                        <th>Created</th>
+                        <th>Indicators</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for pulse in data.results %}
+                    <tr>
+                        <td class="pulse-title">{{ pulse.name }}</td>
+                        <td>{{ pulse.author_name }}</td>
+                        <td>{{ pulse.created | default('N/A') }}</td>
+                        <td class="indicators">{{ pulse.indicator_count }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div>No live feed data available.</div>
+        {% endif %}
+    </div>
+</body>
+</html> 
