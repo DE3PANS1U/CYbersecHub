@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Toolkit - Cybersecurity Tools Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-color-rgb: 52, 152, 219;
+            --primary-hover: #2980b9;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --bg-color: #f8f9fa;
+            --text-color: #2c3e50;
+            --border-color: #ddd;
+            --card-bg: #fff;
+        }
+        [data-theme="dark"] {
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --bg-color: #1a1a2e;
+            --text-color: #e0e0e0;
+            --border-color: #40405a;
+            --card-bg: #2a2a3e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        .theme-toggle:hover { transform: rotate(180deg); }
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .nav-link {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: background 0.3s, color 0.3s;
+        }
+        .nav-link.active, .nav-link:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .tab-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        .tool-section {
+            margin-bottom: 2rem;
+        }
+        .tool-section h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-control, input[type="text"], input[type="number"], input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-control:focus, input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(var(--primary-color-rgb), 0.3);
+        }
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .result-area {
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid var(--border-color);
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .tab-content { padding: 1rem; }
+        }
+        .result-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1em;
+            padding: 1em 1.5em;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .result-card h4 { margin-top: 0; color: var(--primary-color); }
+        .result-card ul { list-style: none; padding-left: 0; }
+        .result-card li { margin-bottom: 0.5em; }
+        .error { color: var(--danger-color); font-weight: 500; margin-bottom: 1em; }
+        .info { color: var(--primary-color); margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-toolbox"></i> Cybersecurity Toolkit</h1>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+        </header>
+        <ul class="nav nav-tabs" id="toolTabs" role="tablist">
+            <li><button class="nav-link active" id="system-tab" data-tab="system" type="button">System Info</button></li>
+            <li><button class="nav-link" id="analyzer-tab" data-tab="analyzer" type="button">File & Hash Analyzer</button></li>
+            <li><button class="nav-link" id="dns-tab" data-tab="dns" type="button">DNS Resolver</button></li>
+            <li><button class="nav-link" id="ssl-tab" data-tab="ssl" type="button">SSL Checker</button></li>
+            <li><button class="nav-link" id="port-tab" data-tab="port" type="button">Port Scanner</button></li>
+        </ul>
+        <div class="tab-content" id="toolTabsContent">
+            <div class="tab-pane tool-section" id="system">
+                <h2><i class="fas fa-desktop"></i> System Information</h2>
+                <button class="btn btn-primary" onclick="getSystemInfo()">Get System Info</button>
+                <div class="result-area" id="systemResult"></div>
+            </div>
+            <div class="tab-pane tool-section" id="analyzer" style="display:none;">
+                <h2><i class="fas fa-bug"></i> File & Hash Analyzer</h2>
+                <form id="analyzerForm">
+                    <label class="form-label">Choose Analysis Type</label>
+                    <select class="form-control" id="analyzeType">
+                        <option value="file">File Upload (Malware/Hash)</option>
+                        <option value="text">Text/Path Hash</option>
+                    </select>
+                    <div id="fileInputGroup">
+                        <label for="analyzerFile" class="form-label">Select File</label>
+                        <input type="file" class="form-control" id="analyzerFile">
+                    </div>
+                    <div id="textInputGroup" style="display:none;">
+                        <label for="analyzerText" class="form-label">Text or File Path</label>
+                        <input type="text" class="form-control" id="analyzerText">
+                        <div class="form-check" style="margin-bottom:1rem;">
+                            <input class="form-check-input" type="checkbox" id="analyzerIsFile">
+                            <label class="form-check-label" for="analyzerIsFile">Is File Path</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analyze</button>
+                </form>
+                <div class="result-area" id="analyzerResult"></div>
+            </div>
+            <div class="tab-pane tool-section" id="dns" style="display:none;">
+                <h2><i class="fas fa-globe"></i> DNS Resolver</h2>
+                <form id="dnsForm">
+                    <label for="domain" class="form-label">Domain Name</label>
+                    <input type="text" class="form-control" id="domain" required>
+                    <button type="submit" class="btn btn-primary">Resolve DNS</button>
+                </form>
+                <div class="result-area" id="dnsResult"></div>
+            </div>
+            <div class="tab-pane tool-section" id="ssl" style="display:none;">
+                <h2><i class="fas fa-lock"></i> SSL/TLS Checker</h2>
+                <form id="sslForm">
+                    <label for="sslDomain" class="form-label">Domain Name</label>
+                    <input type="text" class="form-control" id="sslDomain" required>
+                    <label for="port" class="form-label">Port (default: 443)</label>
+                    <input type="number" class="form-control" id="port" value="443">
+                    <button type="submit" class="btn btn-primary">Check SSL</button>
+                </form>
+                <div class="result-area" id="sslResult"></div>
+            </div>
+            <div class="tab-pane tool-section" id="port">
+                <h2><i class="fas fa-ethernet"></i> Port Scanner</h2>
+                <form id="portForm">
+                    <label for="host" class="form-label">Host</label>
+                    <input type="text" class="form-control" id="host" required>
+                    <label for="startPort" class="form-label">Start Port</label>
+                    <input type="number" class="form-control" id="startPort" value="1">
+                    <label for="endPort" class="form-label">End Port</label>
+                    <input type="number" class="form-control" id="endPort" value="1024">
+                    <button type="submit" class="btn btn-primary">Scan Ports</button>
+                </form>
+                <div class="result-area" id="portResult"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                themeToggle.textContent = '🌙';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        });
+        // Robust tab switching logic
+        const tabs = document.querySelectorAll('.nav-link');
+        const panes = document.querySelectorAll('.tab-pane');
+        // Hide all panes except the first on load
+        panes.forEach((pane, idx) => {
+            pane.style.display = idx === 0 ? '' : 'none';
+        });
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                panes.forEach(pane => pane.style.display = 'none');
+                document.getElementById(tab.getAttribute('data-tab')).style.display = '';
+            });
+        });
+        // System Info
+        function renderSystemInfo(data) {
+            const container = document.getElementById('systemResult');
+            if (!data) {
+                container.innerHTML = '<div class="error">No result.</div>';
+                return;
+            }
+            if (data.error) {
+                container.innerHTML = `<div class="error"><i class='fas fa-exclamation-triangle'></i> ${data.error}</div>`;
+                return;
+            }
+            let html = `<div class='result-card'><h4><i class='fas fa-desktop'></i> System Information</h4><ul>`;
+            for (const [k, v] of Object.entries(data)) {
+                html += `<li><strong>${k.replace(/_/g,' ')}:</strong> ${v}</li>`;
+            }
+            html += `</ul></div>`;
+            html += `<details style='margin-top:1em;'><summary>Show Raw Data</summary><pre>${JSON.stringify(data, null, 2)}</pre></details>`;
+            container.innerHTML = html;
+        }
+        function getSystemInfo() {
+            fetch('/cybersecurity/system-info')
+                .then(response => response.json())
+                .then(renderSystemInfo);
+        }
+        // DNS Resolver
+        function renderDNSResult(data) {
+            const container = document.getElementById('dnsResult');
+            if (!data) {
+                container.innerHTML = '<div class="error">No result.</div>';
+                return;
+            }
+            if (data.error) {
+                container.innerHTML = `<div class="error"><i class='fas fa-exclamation-triangle'></i> ${data.error}</div>`;
+                return;
+            }
+            let html = `<div class='result-card'><h4><i class='fas fa-globe'></i> DNS Records</h4><ul>`;
+            ['a_records','mx_records','ns_records','txt_records'].forEach(type => {
+                if (data[type] && data[type].length) {
+                    html += `<li><strong>${type.replace('_',' ').toUpperCase()}:</strong> <ul>`;
+                    data[type].forEach(val => html += `<li>${val}</li>`);
+                    html += `</ul></li>`;
+                }
+            });
+            html += `</ul></div>`;
+            if (data.whois && Object.keys(data.whois).length) {
+                html += `<div class='result-card'><h4><i class='fas fa-user'></i> WHOIS</h4><ul>`;
+                for (const [k, v] of Object.entries(data.whois)) {
+                    html += `<li><strong>${k.replace(/_/g,' ')}:</strong> ${v}</li>`;
+                }
+                html += `</ul></div>`;
+            }
+            html += `<details style='margin-top:1em;'><summary>Show Raw Data</summary><pre>${JSON.stringify(data, null, 2)}</pre></details>`;
+            container.innerHTML = html;
+        }
+        document.getElementById('dnsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                domain: document.getElementById('domain').value
+            };
+            fetch('/cybersecurity/dns-resolve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(renderDNSResult);
+        });
+        // SSL Checker
+        function renderSSLResult(data) {
+            const container = document.getElementById('sslResult');
+            if (!data) {
+                container.innerHTML = '<div class="error">No result.</div>';
+                return;
+            }
+            if (data.error) {
+                container.innerHTML = `<div class="error"><i class='fas fa-exclamation-triangle'></i> ${data.error}</div>`;
+                return;
+            }
+            let html = `<div class='result-card'><h4><i class='fas fa-lock'></i> SSL/TLS Certificate</h4><ul>`;
+            for (const [k, v] of Object.entries(data)) {
+                if (typeof v === 'object' && v !== null) {
+                    html += `<li><strong>${k.replace(/_/g,' ')}:</strong> <ul>`;
+                    for (const [kk, vv] of Object.entries(v)) {
+                        html += `<li><strong>${kk.replace(/_/g,' ')}:</strong> ${vv}</li>`;
+                    }
+                    html += `</ul></li>`;
+                } else {
+                    html += `<li><strong>${k.replace(/_/g,' ')}:</strong> ${v}</li>`;
+                }
+            }
+            html += `</ul></div>`;
+            html += `<details style='margin-top:1em;'><summary>Show Raw Data</summary><pre>${JSON.stringify(data, null, 2)}</pre></details>`;
+            container.innerHTML = html;
+        }
+        document.getElementById('sslForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                domain: document.getElementById('sslDomain').value,
+                port: document.getElementById('port').value
+            };
+            fetch('/cybersecurity/ssl-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(renderSSLResult);
+        });
+        // Port Scanner
+        function renderPortResult(data) {
+            const container = document.getElementById('portResult');
+            if (!data) {
+                container.innerHTML = '<div class="error">No result.</div>';
+                return;
+            }
+            if (data.error) {
+                container.innerHTML = `<div class="error"><i class='fas fa-exclamation-triangle'></i> ${data.error}</div>`;
+                return;
+            }
+            let html = '';
+            if (Array.isArray(data) && data.length) {
+                html += `<div class='result-card'><h4><i class='fas fa-ethernet'></i> Open Ports</h4><table style='width:100%;'><thead><tr><th>Port</th><th>Service</th><th>Status</th></tr></thead><tbody>`;
+                data.forEach(port => {
+                    html += `<tr><td>${port.port}</td><td>${port.service}</td><td>${port.status}</td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+            } else {
+                html = '<div class="info">No open ports found. See raw data below.</div>';
+            }
+            html += `<details style='margin-top:1em;'><summary>Show Raw Data</summary><pre>${JSON.stringify(data, null, 2)}</pre></details>`;
+            container.innerHTML = html;
+        }
+        document.getElementById('portForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                host: document.getElementById('host').value,
+                start_port: document.getElementById('startPort').value,
+                end_port: document.getElementById('endPort').value
+            };
+            fetch('/cybersecurity/port-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(renderPortResult);
+        });
+        // Analyzer logic
+        const analyzeType = document.getElementById('analyzeType');
+        const fileInputGroup = document.getElementById('fileInputGroup');
+        const textInputGroup = document.getElementById('textInputGroup');
+        analyzeType.addEventListener('change', function() {
+            if (this.value === 'file') {
+                fileInputGroup.style.display = '';
+                textInputGroup.style.display = 'none';
+            } else {
+                fileInputGroup.style.display = 'none';
+                textInputGroup.style.display = '';
+            }
+        });
+        function renderAnalyzerResult(data) {
+            const container = document.getElementById('analyzerResult');
+            if (!data) {
+                container.innerHTML = '<div class="error">No result.</div>';
+                return;
+            }
+            if (data.error) {
+                container.innerHTML = `<div class="error"><i class='fas fa-exclamation-triangle'></i> ${data.error}</div>`;
+                return;
+            }
+            let html = '';
+            // File Info
+            if (data.file_info) {
+                html += `<div class='result-card'><h4><i class='fas fa-file'></i> File Info</h4><ul>`;
+                for (const [k, v] of Object.entries(data.file_info)) {
+                    html += `<li><strong>${k.replace(/_/g,' ')}:</strong> ${v}</li>`;
+                }
+                html += `</ul></div>`;
+            }
+            // Hashes
+            if (data.hash_analysis || (data.md5 && data.sha1 && data.sha256)) {
+                const hashes = data.hash_analysis || data;
+                html += `<div class='result-card'><h4><i class='fas fa-key'></i> Hashes</h4><ul>`;
+                ['md5','sha1','sha256','sha512'].forEach(h => {
+                    if (hashes[h]) html += `<li><strong>${h.toUpperCase()}:</strong> <code>${hashes[h]}</code></li>`;
+                });
+                html += `</ul></div>`;
+            }
+            // Pattern Analysis
+            if (data.pattern_analysis && Object.keys(data.pattern_analysis).length) {
+                html += `<div class='result-card'><h4><i class='fas fa-search'></i> Suspicious Patterns</h4><ul>`;
+                for (const [pattern, count] of Object.entries(data.pattern_analysis)) {
+                    html += `<li><strong>${pattern}</strong>: ${count} match(es)</li>`;
+                }
+                html += `</ul></div>`;
+            }
+            // General fields (for hash generator)
+            if (data.filename) {
+                html += `<div class='result-card'><h4><i class='fas fa-file'></i> File</h4><ul>`;
+                html += `<li><strong>Filename:</strong> ${data.filename}</li>`;
+                if (data.hash) html += `<li><strong>Hash:</strong> <code>${data.hash}</code></li>`;
+                html += `</ul></div>`;
+            }
+            // If nothing above, fallback to JSON
+            if (!html) {
+                html = '<div class="info">No detailed info. See raw data below.</div>';
+            }
+            // Collapsible raw JSON
+            html += `<details style='margin-top:1em;'><summary>Show Raw Data</summary><pre>${JSON.stringify(data, null, 2)}</pre></details>`;
+            container.innerHTML = html;
+        }
+        document.getElementById('analyzerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const type = analyzeType.value;
+            if (type === 'file') {
+                const file = document.getElementById('analyzerFile').files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                fetch('/cybersecurity/scan-file', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(renderAnalyzerResult);
+            } else {
+                const content = document.getElementById('analyzerText').value;
+                const isFile = document.getElementById('analyzerIsFile').checked;
+                fetch('/cybersecurity/generate-hash', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content, is_file: isFile })
+                })
+                .then(response => response.json())
+                .then(renderAnalyzerResult);
+            }
+        });
+    </script>
+</body>
+</html> 

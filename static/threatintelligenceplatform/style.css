@@ -1,0 +1,333 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 100;
+    padding: 20px 0 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    background-color: #fff;
+    padding: 28px 24px 32px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+}
+
+h1, h2, h3 {
+    color: #007bff;
+    margin-bottom: 18px;
+    font-weight: 600;
+}
+
+.card-section h3 {
+    margin-bottom: 0;
+    font-size: 1.2em;
+}
+
+.card-section h4 {
+    margin-bottom: 0;
+    font-size: 1.08em;
+}
+
+h4 {
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #ffe0e0;
+    border: 1px solid #ffb3b3;
+    border-radius: 4px;
+}
+
+/* Card Section Styles */
+.card-section {
+    margin-top: 28px;
+    margin-bottom: 20px;
+    padding: 0;
+    border-radius: 8px;
+    background: #fafbfc;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    border: 1px solid #e3e7ee;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.card-header {
+    background: #f0f3fa;
+    padding: 14px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #e3e7ee;
+    font-size: 1.07em;
+}
+
+.card-header .toggle-icon {
+    margin-right: 10px;
+    font-size: 1.1em;
+    transition: transform 0.2s;
+}
+
+.card-header.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.card-body {
+    padding: 18px 20px 18px 20px;
+    animation: fadeIn 0.25s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.card-section.collapsed .card-body {
+    display: none;
+}
+
+/* Section Styles */
+.overview-section, .security-section, .reputation-section {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.overview-section h3, .security-section h3, .reputation-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.overview-section h4, .security-section h4, .reputation-section h4 {
+    color: #555;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.overview-section h3 i, .security-section h3 i, .reputation-section h3 i{
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+.overview-section h4 i, .security-section h4 i, .reputation-section h4 i{
+    margin-right: 5px;
+    font-size: 1em;
+}
+
+/* Data Display Styles */
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.grid-item {
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #e3e7ee;
+    margin-bottom: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    font-size: 1em;
+}
+
+.data-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.data-list > li {
+    margin-bottom: 13px;
+    padding-left: 0;
+    position: relative;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 7px;
+}
+
+.data-list > li:last-child {
+    border-bottom: none;
+}
+
+.data-list > li::before {
+    display: none;
+}
+
+.nested-list {
+    list-style-type: none;
+    padding-left: 15px;
+    margin-top: 10px;
+}
+
+.nested-list > li {
+    margin-bottom: 8px;
+}
+
+.value {
+    font-weight: normal;
+    color: #2c3e50;
+}
+
+.status {
+    padding: 6px 13px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    display: inline-block;
+    min-width: 70px;
+    text-align: center;
+    font-size: .97em;
+    letter-spacing: 0.01em;
+}
+
+.status.ok {
+    background-color: #28a745;
+}
+
+.status.warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status.failed {
+    background-color: #dc3545;
+}
+
+.status.info {
+    background-color: #17a2b8;
+}
+
+.warning {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.score {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #28a745;
+    background: #eafbea;
+    padding: 4px 14px;
+    border-radius: 14px;
+    margin-left: 6px;
+}
+
+.code {
+    font-family: monospace;
+    background-color: #e2e3e4;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #2c3e50;
+    border: 1px solid #ddd;
+}
+
+.warning-box{
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.warning-list{
+    list-style-position: inside;
+    padding-left: 0;
+    margin: 8px 0 0 0;
+}
+
+.domain-list{
+    list-style-type: none;
+    padding-left: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid #e3e7ee;
+    background: #f7f9fb;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.domain-list li{
+    margin-bottom: 7px;
+    padding: 6px 10px 4px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: .98em;
+}
+
+.domain-list li:last-child{
+    border-bottom: none;
+}
+
+.info{
+    font-size: 0.96em;
+    color: #007bff;
+    margin-left: 4px;
+    font-style: italic;
+}
+
+.reputation-checks{
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}

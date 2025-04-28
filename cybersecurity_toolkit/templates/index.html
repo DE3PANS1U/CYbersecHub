@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Toolkit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .tool-card {
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+        }
+        .result-area {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .nav-tabs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Cybersecurity Toolkit</h1>
+        
+        <ul class="nav nav-tabs" id="toolTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button">System Info</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="malware-tab" data-bs-toggle="tab" data-bs-target="#malware" type="button">Malware Scanner</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="packet-tab" data-bs-toggle="tab" data-bs-target="#packet" type="button">Packet Sniffer</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="dns-tab" data-bs-toggle="tab" data-bs-target="#dns" type="button">DNS Resolver</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ssl-tab" data-bs-toggle="tab" data-bs-target="#ssl" type="button">SSL Checker</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="port-tab" data-bs-toggle="tab" data-bs-target="#port" type="button">Port Scanner</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hash-tab" data-bs-toggle="tab" data-bs-target="#hash" type="button">Hash Generator</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="toolTabsContent">
+            <!-- System Info Tab -->
+            <div class="tab-pane fade show active" id="system" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">System Information</h5>
+                        <button class="btn btn-primary" onclick="getSystemInfo()">Get System Info</button>
+                        <div class="result-area" id="systemResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Malware Scanner Tab -->
+            <div class="tab-pane fade" id="malware" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Malware Scanner</h5>
+                        <form id="malwareForm">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Select File to Scan</label>
+                                <input type="file" class="form-control" id="file" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Scan File</button>
+                        </form>
+                        <div class="result-area" id="malwareResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packet Sniffer Tab -->
+            <div class="tab-pane fade" id="packet" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Packet Sniffer</h5>
+                        <form id="packetForm">
+                            <div class="mb-3">
+                                <label for="interface" class="form-label">Network Interface (optional)</label>
+                                <input type="text" class="form-control" id="interface">
+                            </div>
+                            <div class="mb-3">
+                                <label for="count" class="form-label">Number of Packets</label>
+                                <input type="number" class="form-control" id="count" value="10">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="startSniffing()">Start Sniffing</button>
+                            <button type="button" class="btn btn-danger" onclick="stopSniffing()">Stop Sniffing</button>
+                        </form>
+                        <div class="result-area" id="packetResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS Resolver Tab -->
+            <div class="tab-pane fade" id="dns" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">DNS Resolver</h5>
+                        <form id="dnsForm">
+                            <div class="mb-3">
+                                <label for="domain" class="form-label">Domain Name</label>
+                                <input type="text" class="form-control" id="domain" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Resolve DNS</button>
+                        </form>
+                        <div class="result-area" id="dnsResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSL Checker Tab -->
+            <div class="tab-pane fade" id="ssl" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">SSL/TLS Checker</h5>
+                        <form id="sslForm">
+                            <div class="mb-3">
+                                <label for="sslDomain" class="form-label">Domain Name</label>
+                                <input type="text" class="form-control" id="sslDomain" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="port" class="form-label">Port (default: 443)</label>
+                                <input type="number" class="form-control" id="port" value="443">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Check SSL</button>
+                        </form>
+                        <div class="result-area" id="sslResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Port Scanner Tab -->
+            <div class="tab-pane fade" id="port" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Port Scanner</h5>
+                        <form id="portForm">
+                            <div class="mb-3">
+                                <label for="host" class="form-label">Host</label>
+                                <input type="text" class="form-control" id="host" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="startPort" class="form-label">Start Port</label>
+                                <input type="number" class="form-control" id="startPort" value="1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="endPort" class="form-label">End Port</label>
+                                <input type="number" class="form-control" id="endPort" value="1024">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Scan Ports</button>
+                        </form>
+                        <div class="result-area" id="portResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hash Generator Tab -->
+            <div class="tab-pane fade" id="hash" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Hash Generator</h5>
+                        <form id="hashForm">
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Text or File Path</label>
+                                <input type="text" class="form-control" id="content" required>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isFile">
+                                    <label class="form-check-label" for="isFile">
+                                        Is File Path
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Generate Hash</button>
+                        </form>
+                        <div class="result-area" id="hashResult"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // System Info
+        function getSystemInfo() {
+            fetch('/system-info')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('systemResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                });
+        }
+
+        // Malware Scanner
+        document.getElementById('malwareForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('file', document.getElementById('file').files[0]);
+            
+            fetch('/scan-file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('malwareResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        });
+
+        // Packet Sniffer
+        function startSniffing() {
+            const data = {
+                interface: document.getElementById('interface').value,
+                count: document.getElementById('count').value
+            };
+            
+            fetch('/start-sniffing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('packetResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        }
+
+        function stopSniffing() {
+            fetch('/stop-sniffing', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('packetResult').innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        }
+
+        // DNS Resolver
+        document.getElementById('dnsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                domain: document.getElementById('domain').value
+            };
+            
+            fetch('/dns-resolve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('dnsResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        });
+
+        // SSL Checker
+        document.getElementById('sslForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                domain: document.getElementById('sslDomain').value,
+                port: document.getElementById('port').value
+            };
+            
+            fetch('/ssl-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sslResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        });
+
+        // Port Scanner
+        document.getElementById('portForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                host: document.getElementById('host').value,
+                start_port: document.getElementById('startPort').value,
+                end_port: document.getElementById('endPort').value
+            };
+            
+            fetch('/port-scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('portResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        });
+
+        // Hash Generator
+        document.getElementById('hashForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                content: document.getElementById('content').value,
+                is_file: document.getElementById('isFile').checked
+            };
+            
+            fetch('/generate-hash', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('hashResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+        });
+    </script>
+</body>
+</html> 
